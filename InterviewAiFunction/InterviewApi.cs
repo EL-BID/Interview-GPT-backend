@@ -37,7 +37,7 @@ namespace InterviewAiFunction
             {
                 var interviewUuid = req.Query["Uuid"];
                 if(interviewUuid != null)
-                {
+                {                    
                     Interview interview = _context.Interview.Include("Questions").FirstOrDefault(x=> x.Uuid == interviewUuid);
                     await response.WriteAsJsonAsync(interview);
                 }
@@ -111,6 +111,6 @@ namespace InterviewAiFunction
                 }
             }
             return response;
-        }        
+        }     
     }
 }

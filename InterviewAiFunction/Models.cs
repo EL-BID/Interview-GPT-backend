@@ -27,6 +27,7 @@ namespace InterviewAiFunction
         public DbSet<InterviewQuestion> InterviewQuestion { get; set; }
         public DbSet<InterviewInvitation> InterviewInvitation { get; set; }
         public DbSet<InterviewResult> InterviewResult { get; set; }
+        public DbSet<InterviewResponse> InterviewResponse { get; set; }
 
     }
 
@@ -80,5 +81,15 @@ namespace InterviewAiFunction
         public DateTime? CreatedAt { get; set;}
         public DateTime? UpdatedAt { get; set; }
 
+    }
+
+    public class InterviewResponse
+    {
+        public int Id { get; set; }
+        public int InterviewInvitationId { get; set; }
+        public int InterviewQuestionId { get; set; }
+        public string ResponseText { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
     }
 }

@@ -37,7 +37,7 @@ namespace InterviewAiFunction
             return randomAlphanumericString;
         }
 
-        [Function("InterviewInvitationApi")]
+        [Function("InterviewInvitation")]
         public async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Function, "get", "put", "delete", Route = "invitation")] HttpRequestData req)
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
