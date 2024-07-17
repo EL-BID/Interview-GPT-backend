@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using DarkLoop.Azure.Functions.Authorization;
 using InterviewAiFunction.Serializers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
@@ -11,6 +12,7 @@ using static Microsoft.ApplicationInsights.MetricDimensionNames.TelemetryContext
 
 namespace InterviewAiFunction
 {
+    [FunctionAuthorize]
     public class InterviewApi
     {
         private readonly ILogger _logger;
@@ -32,13 +34,24 @@ namespace InterviewAiFunction
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
 
+            var email = "";
+            
             var response = req.CreateResponse(HttpStatusCode.OK);
+            if (!req.Identities.Any())
+            {
+                response = req.CreateResponse(HttpStatusCode.Unauthorized);
+                return response;
+            }
+            else
+            {
+                email = req.Identities.First().Name.ToLower();
+            }
             if (req.Method == "GET")
             {
                 var interviewUuid = req.Query["Uuid"];
                 if(interviewUuid != null)
                 {                    
-                    Interview interview = _context.Interview.Include("Questions").FirstOrDefault(x=> x.Uuid == interviewUuid);
+                    Interview interview = _context.Interview.Include("Questions").FirstOrDefault(x=> x.Uuid == interviewUuid && x.CreatedBy==email);
                     await response.WriteAsJsonAsync(interview);
                 }
                 else
@@ -60,7 +73,7 @@ namespace InterviewAiFunction
                             if (interviewSerializer.Uuid != null)
                             {
                                 // assumes is a request for update
-                                Interview interview = _context.Interview.FirstOrDefault(x => x.Uuid == interviewSerializer.Uuid);
+                                Interview interview = _context.Interview.FirstOrDefault(x => x.Uuid == interviewSerializer.Uuid && x.CreatedBy==email);
                                 if (interview != null)
                                 {
                                     interview.Title = interviewSerializer.Title ?? interview.Title;
@@ -69,6 +82,7 @@ namespace InterviewAiFunction
                                     interview.Prompt = interviewSerializer?.Prompt ?? interview.Prompt;
                                     _context.Interview.Update(interview);
                                     await _context.SaveChangesAsync();
+                                    await response.WriteAsJsonAsync(interview);
                                 }
                                 else
                                 {
@@ -84,15 +98,17 @@ namespace InterviewAiFunction
                                     Title = interviewSerializer.Title ?? "Untitled",
                                     Uuid = System.Guid.NewGuid().ToString(),
                                     CreatedAt = DateTime.Now,
-                                    CreatedBy = "joseza@iadb.org"
+                                    CreatedBy = email
                                 };
                                 _context.Interview.Add(interview);
                                 await _context.SaveChangesAsync();
+                                await response.WriteAsJsonAsync(interview);
+
                             }
                         }
                         else if (req.Method == "DELETE")
                         {
-                            Interview interview = _context.Interview.FirstOrDefault(x => x.Uuid == interviewSerializer.Uuid);
+                            Interview interview = _context.Interview.FirstOrDefault(x => x.Uuid == interviewSerializer.Uuid && x.CreatedBy == email);
                             if (interview != null)
                             {
                                 _context.Interview.Remove(interview);

@@ -24,7 +24,7 @@ namespace InterviewAiFunction
         }
 
         [Function("InterviewResponses")]
-        public async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Function, "get", Route = "responses")] HttpRequestData req)
+        public async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "public/responses")] HttpRequestData req)
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
             var response = req.CreateResponse(HttpStatusCode.OK);

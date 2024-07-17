@@ -1,4 +1,6 @@
+using DarkLoop.Azure.Functions.Authorization;
 using InterviewAiFunction.Serializers;
+using InterviewAiFunction.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
@@ -11,6 +13,7 @@ using System.Text.Json;
 
 namespace InterviewAiFunction
 {
+    [FunctionAuthorize]
     public class InterviewInvitationApi
     {
         private readonly ILogger _logger;
@@ -38,19 +41,20 @@ namespace InterviewAiFunction
         }
 
         [Function("InterviewInvitation")]
-        public async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Function, "get", "put", "delete", Route = "invitation")] HttpRequestData req)
+        public async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "put", "delete", Route = "invitation")] HttpRequestData req)
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
             var response = req.CreateResponse(HttpStatusCode.OK);
+            var email = req.Identities.First().Name;
+            DatabaseCommons dbCommons = new DatabaseCommons(_context);
             if(req.Method=="GET")
             {
-
                 try
                 {
                     int invitationId  = int.Parse(req.Query["Id"]);
                     {
                         InterviewInvitation invitation = _context.InterviewInvitation.Find(invitationId);
-                        if (invitation != null)
+                        if (invitation != null && dbCommons.IsUserInvitation(invitation, email))
                         {
                             await response.WriteAsJsonAsync(invitation);
                         }
@@ -80,11 +84,12 @@ namespace InterviewAiFunction
                             if (invitationSerializer.Id != null)
                             {
                                 InterviewInvitation invitation = _context.InterviewInvitation.Find(invitationSerializer.Id);
-                                if (invitation != null)
+                                if (invitation != null && dbCommons.IsUserInvitation(invitation, email))
                                 {
                                     invitation.InvitationStatus = invitationSerializer.InvitationStatus ?? invitation.InvitationStatus;
                                     _context.InterviewInvitation.Update(invitation);
                                     await _context.SaveChangesAsync();
+                                    await response.WriteAsJsonAsync(invitation);
                                 }
                                 else
                                 {
@@ -93,7 +98,7 @@ namespace InterviewAiFunction
                             }
                             else
                             {
-                                if (invitationSerializer.InterviewId != null)
+                                if (invitationSerializer.InterviewId != null && dbCommons.IsUserInterviewId((int)invitationSerializer.InterviewId, email))
                                 {
                                     InterviewInvitation invitation = new InterviewInvitation
                                     {
@@ -105,13 +110,14 @@ namespace InterviewAiFunction
                                     };
                                     _context.InterviewInvitation.Add(invitation);
                                     await _context.SaveChangesAsync();
+                                    await response.WriteAsJsonAsync(invitation);
                                 }
                             }
                         }
                         else if (req.Method == "DELETE")
                         {
                             InterviewInvitation invitation = _context.InterviewInvitation.Find(invitationSerializer.Id);
-                            if (invitation != null)
+                            if (invitation != null && dbCommons.IsUserInvitation(invitation, email))
                             {
                                 _context.InterviewInvitation.Remove(invitation);
                                 await _context.SaveChangesAsync();

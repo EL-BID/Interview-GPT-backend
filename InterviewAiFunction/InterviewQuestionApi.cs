@@ -1,4 +1,6 @@
+using DarkLoop.Azure.Functions.Authorization;
 using InterviewAiFunction.Serializers;
+using InterviewAiFunction.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
@@ -10,6 +12,7 @@ using System.Text.Json;
 
 namespace InterviewAiFunction
 {
+    [FunctionAuthorize]
     public class InterviewQuestionApi
     {
         private readonly ILogger _logger;
@@ -27,18 +30,20 @@ namespace InterviewAiFunction
         }
 
         [Function("InterviewQuestion")]
-        public async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Function, "get", "put", "delete", Route ="question")] HttpRequestData req)
+        public async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "put", "delete", Route ="question")] HttpRequestData req)
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
             var response = req.CreateResponse(HttpStatusCode.OK);
-
+            DatabaseCommons dbCommons = new DatabaseCommons(_context);
+            var email = req.Identities.First().Name;
             if (req.Method=="GET")
             {
                 try
                 {
                     int questionId = int.Parse(req.Query["Id"]);
                     InterviewQuestion question = _context.InterviewQuestion.Find(questionId);
-                    if (question != null)
+                    //TODO: validate that the user is the interview owner.
+                    if (question != null && dbCommons.IsUserQuestion(question, email))
                     {
                         await response.WriteAsJsonAsync(question);
                     }
@@ -66,13 +71,14 @@ namespace InterviewAiFunction
                             if(questionSerializer.Id != null)
                             {
                                 InterviewQuestion question = _context.InterviewQuestion.Find(questionSerializer.Id);
-                                if(question != null)
+                                if(question != null && dbCommons.IsUserQuestion(question, email))
                                 {
                                     question.QuestionOrder = questionSerializer.QuestionOrder ?? question.QuestionOrder;
                                     question.QuestionText = questionSerializer.QuestionText ?? question.QuestionText;
                                     question.IsRequired = questionSerializer.IsRequired ?? question.IsRequired;
                                     _context.InterviewQuestion.Update(question);
                                     await _context.SaveChangesAsync();
+                                    await response.WriteAsJsonAsync(question);
                                 }
                                 else
                                 {
@@ -81,7 +87,7 @@ namespace InterviewAiFunction
                             }
                             else
                             {
-                                if(questionSerializer.InterviewId != null)
+                                if(questionSerializer.InterviewId != null && dbCommons.IsUserInterviewId((int)questionSerializer.InterviewId, email))
                                 {
                                     InterviewQuestion question = new InterviewQuestion
                                     {
@@ -92,6 +98,7 @@ namespace InterviewAiFunction
                                     };
                                     _context.InterviewQuestion.Add(question);
                                     await _context.SaveChangesAsync();
+                                    await response.WriteAsJsonAsync(question);
                                 }
 
                                 
@@ -101,7 +108,7 @@ namespace InterviewAiFunction
                     else if (req.Method=="DELETE")
                     {
                         InterviewQuestion question = _context.InterviewQuestion.Find(questionSerializer.Id);
-                        if (question != null)
+                        if (question != null && dbCommons.IsUserQuestion(question, email))
                         {
                             _context.InterviewQuestion.Remove(question);
                             await _context.SaveChangesAsync();

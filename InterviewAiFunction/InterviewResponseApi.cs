@@ -27,7 +27,7 @@ namespace InterviewAiFunction
         }
 
         [Function("InterviewResponse")]
-        public async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Function, "get", "put", "delete", Route = "response")] HttpRequestData req)
+        public async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "put", "delete", Route = "public/response")] HttpRequestData req)
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
             var response = req.CreateResponse(HttpStatusCode.OK);
@@ -78,6 +78,7 @@ namespace InterviewAiFunction
                                             interviewResponse.UpdatedAt = DateTime.Now;
                                             _context.InterviewResponse.Update(interviewResponse);
                                             await _context.SaveChangesAsync();
+                                            await response.WriteAsJsonAsync(interviewResponse);
                                         }
                                         else
                                         {
@@ -99,6 +100,7 @@ namespace InterviewAiFunction
                                         };
                                         _context.InterviewResponse.Add(interviewResponse);
                                         await _context.SaveChangesAsync();
+                                        await response.WriteAsJsonAsync(interviewResponse);
                                     }
                                 }
                             }

@@ -8,6 +8,7 @@ namespace InterviewAiFunction.Serializers
 {
     internal class InterviewSerializer
     {
+        public int? Id { get; set; }
         public string? Title {  get; set; }
         public string? Description { get; set; }
         public string? Prompt { get; set; }
@@ -16,5 +17,6 @@ namespace InterviewAiFunction.Serializers
         public DateTime? CreatedAt { get; set; }
         public DateTime? CreatedBy { get; set; }
         public List<InterviewQuestionSerializer>? Questions { get; set; }
+        
     }
 }

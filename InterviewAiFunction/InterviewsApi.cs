@@ -1,12 +1,16 @@
+using DarkLoop.Azure.Functions.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
+using System.Linq.Expressions;
 using System.Net;
+using System.Security.Claims;
 
 namespace InterviewAiFunction
 {
+    [FunctionAuthorize]
     public class InterviewsApi
     {
         private readonly ILogger _logger;
@@ -24,13 +28,20 @@ namespace InterviewAiFunction
         }
 
         [Function("Interviews")]
-        public async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Function, "get", Route = "interviews")] HttpRequestData req)
+        public async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "interviews")] HttpRequestData req)
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
             var response = req.CreateResponse(HttpStatusCode.OK);
-            // ADMIN ONLY.
-            var interviews = _context.Interview.ToList();
-            await response.WriteAsJsonAsync(interviews);
+            if (req.Identities.Any())
+            {
+                var email = req.Identities.First().Name;
+                var interviews = _context.Interview.Where(i=>i.CreatedBy.ToLower() == email.ToLower()).ToList();
+                await response.WriteAsJsonAsync(interviews);
+            }
+            else
+            {
+                response = req.CreateResponse(HttpStatusCode.Unauthorized);
+            }                        
             return response;
         }
     }
