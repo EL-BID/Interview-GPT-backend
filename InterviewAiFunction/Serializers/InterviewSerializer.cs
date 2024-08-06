@@ -14,6 +14,7 @@ namespace InterviewAiFunction.Serializers
         public string? Prompt { get; set; }
         public string? Model { get; set; }
         public string? Uuid { get; set; }
+        public string? Status { get; set; }
         public DateTime? CreatedAt { get; set; }
         public DateTime? CreatedBy { get; set; }
         public List<InterviewQuestionSerializer>? Questions { get; set; }

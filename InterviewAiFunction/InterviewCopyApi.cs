@@ -61,7 +61,8 @@ namespace InterviewAiFunction
                                 Description = interview.Description,
                                 Model = interview.Model,
                                 Prompt = interview.Prompt,
-                                Uuid = System.Guid.NewGuid().ToString()
+                                Uuid = System.Guid.NewGuid().ToString(),
+                                Status = "inactive"
                             };
                             _context.Interview.Add(interviewCopy);
                             InterviewQuestion interviewQuestionCopy;

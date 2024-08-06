@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Linq.Expressions;
 using System.Net;
@@ -31,12 +32,38 @@ namespace InterviewAiFunction
         public async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "interviews")] HttpRequestData req)
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
+
+            var includeAll = req.Query["All"];
+
             var response = req.CreateResponse(HttpStatusCode.OK);
             if (req.Identities.Any())
             {
                 var email = req.Identities.First().Name;
-                var interviews = _context.Interview.Where(i=>i.CreatedBy.ToLower() == email.ToLower()).ToList();
-                await response.WriteAsJsonAsync(interviews);
+                if (includeAll != null && includeAll == "yes")
+                {
+                    var interviews = _context.Interview.Where(i => i.CreatedBy.ToLower() == email.ToLower()).Select(
+                        i => new
+                        {
+                            i.Id,
+                            i.Title,
+                            i.Description,
+                            i.CreatedAt,
+                            i.CreatedBy,
+                            i.Prompt,
+                            i.Model,
+                            i.Uuid,
+                            i.Status,
+                            Questions = _context.InterviewQuestion.Where(q=>q.InterviewId==i.Id).ToList(),
+                            Invitations = _context.InterviewInvitation.Where(iv=>iv.InterviewId==i.Id).Include("Results").Include("Responses").ToList()
+                        }
+                    ).ToList();
+                    await response.WriteAsJsonAsync(interviews);
+                }
+                else
+                {
+                    var interviews = _context.Interview.Where(i => i.CreatedBy.ToLower() == email.ToLower()).ToList();
+                    await response.WriteAsJsonAsync(interviews);
+                }                             
             }
             else
             {

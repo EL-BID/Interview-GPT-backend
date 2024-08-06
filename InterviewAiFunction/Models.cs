@@ -41,8 +41,9 @@ namespace InterviewAiFunction
         public string? Prompt { get; set; } 
         public string? Model { get; set; }
         public required string Uuid {  get; set; }
+        public required string Status { get; set; }
         public virtual List<InterviewQuestion>? Questions { get; set; }
-        public virtual List<InterviewInvitation>? Invites { get; set; }
+        public virtual List<InterviewInvitation>? Invitations { get; set; }
 
     }
 
@@ -69,6 +70,9 @@ namespace InterviewAiFunction
         public string InvitationCode { get; set; }
         public string? InvitationStatus { get; set; }
         public DateTime? CreatedAt { get; set; }
+        public virtual List<InterviewResult>? Results { get; set; }
+        public virtual List<InterviewResponse>? Responses { get; set; }
+
 
     }
 

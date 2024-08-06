@@ -49,9 +49,10 @@ namespace InterviewAiFunction
             if (req.Method == "GET")
             {
                 var interviewUuid = req.Query["Uuid"];
+
                 if(interviewUuid != null)
                 {                    
-                    Interview interview = _context.Interview.Include("Questions").FirstOrDefault(x=> x.Uuid == interviewUuid && x.CreatedBy==email);
+                    Interview interview = _context.Interview.Include("Questions").Include("Invitations").Include("Invitations.Responses").Include("Invitations.Results").FirstOrDefault(x=> x.Uuid == interviewUuid && x.CreatedBy==email);
                     await response.WriteAsJsonAsync(interview);
                 }
                 else
@@ -80,6 +81,7 @@ namespace InterviewAiFunction
                                     interview.Model = interviewSerializer.Model ?? interview.Model;
                                     interview.Description = interviewSerializer?.Description ?? interview.Description;
                                     interview.Prompt = interviewSerializer?.Prompt ?? interview.Prompt;
+                                    interview.Status = interviewSerializer?.Status ?? interview.Status;
                                     _context.Interview.Update(interview);
                                     await _context.SaveChangesAsync();
                                     await response.WriteAsJsonAsync(interview);
@@ -98,7 +100,8 @@ namespace InterviewAiFunction
                                     Title = interviewSerializer.Title ?? "Untitled",
                                     Uuid = System.Guid.NewGuid().ToString(),
                                     CreatedAt = DateTime.Now,
-                                    CreatedBy = email
+                                    CreatedBy = email,
+                                    Status = "inactive"
                                 };
                                 _context.Interview.Add(interview);
                                 await _context.SaveChangesAsync();
