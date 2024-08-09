@@ -1,4 +1,5 @@
 using InterviewAiFunction.Serializers;
+using InterviewAiFunction.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
@@ -10,35 +11,36 @@ using System.Text.Json;
 
 namespace InterviewAiFunction
 {
-    public class InterviewResponseApi
+    public class InterviewResponsePublicApi
     {
         private readonly ILogger _logger;
         private readonly InterviewContext _context;
 
-        public InterviewResponseApi(ILoggerFactory loggerFactory)
+        public InterviewResponsePublicApi(ILoggerFactory loggerFactory)
         {
             _logger = loggerFactory.CreateLogger<InterviewQuestionApi>(); ;
         }
 
-        public InterviewResponseApi(InterviewContext context, ILoggerFactory loggerFactory)
+        public InterviewResponsePublicApi(InterviewContext context, ILoggerFactory loggerFactory)
         {
             _context = context;
-            _logger = loggerFactory.CreateLogger<InterviewResponseApi>();
+            _logger = loggerFactory.CreateLogger<InterviewResponsePublicApi>();
         }
 
-        [Function("InterviewResponse")]
+        [Function("InterviewResponsePublic")]
         public async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "put", "delete", Route = "public/response")] HttpRequestData req)
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
             var response = req.CreateResponse(HttpStatusCode.OK);
-            if(req.Method== "GET")
+            DatabaseCommons dbCommons = new DatabaseCommons(_context);
+            if (req.Method== "GET")
             {
                 try
                 {
                     string invitationCode = req.Query["InvitationCode"];
                     int responseId = int.Parse(req.Query["Id"]);
                     InterviewInvitation invitation = _context.InterviewInvitation.FirstOrDefault(i=>i.InvitationCode == invitationCode);    
-                    if(invitation != null)
+                    if(invitation != null && dbCommons.IsResponseInvitation(invitation, responseId))
                     {
                         InterviewResponse interviewResponse = _context.InterviewResponse.Find(responseId);
                         await response.WriteAsJsonAsync(interviewResponse);
@@ -74,11 +76,18 @@ namespace InterviewAiFunction
                                         InterviewResponse interviewResponse = _context.InterviewResponse.Find(responseSerializer.Id);
                                         if(interviewResponse != null)
                                         {
-                                            interviewResponse.ResponseText = responseSerializer.ResponseText ?? interviewResponse.ResponseText;
-                                            interviewResponse.UpdatedAt = DateTime.Now;
-                                            _context.InterviewResponse.Update(interviewResponse);
-                                            await _context.SaveChangesAsync();
-                                            await response.WriteAsJsonAsync(interviewResponse);
+                                            if(dbCommons.IsResponseInvitation(invitation, interviewResponse.Id))
+                                            {
+                                                interviewResponse.ResponseText = responseSerializer.ResponseText ?? interviewResponse.ResponseText;
+                                                interviewResponse.UpdatedAt = DateTime.Now;
+                                                _context.InterviewResponse.Update(interviewResponse);
+                                                await _context.SaveChangesAsync();
+                                                await response.WriteAsJsonAsync(interviewResponse);
+                                            }
+                                            else
+                                            {
+                                                response = req.CreateResponse(HttpStatusCode.Unauthorized);
+                                            }
                                         }
                                         else
                                         {
@@ -88,26 +97,40 @@ namespace InterviewAiFunction
                                     }
                                     else
                                     {
-                                        //TODO: validate that InterviewQuestionId is in the request;
-                                        DateTime now = DateTime.Now;
-                                        InterviewResponse interviewResponse = new InterviewResponse
+                                        if(dbCommons.IsInterviewQuestionforInvitation((int)responseSerializer.InterviewQuestionId, invitation))
                                         {
-                                            CreatedAt = now,
-                                            UpdatedAt = now,
-                                            ResponseText = responseSerializer.ResponseText,
-                                            InterviewInvitationId = invitation.Id,
-                                            InterviewQuestionId = (int)responseSerializer.InterviewQuestionId,
-                                        };
-                                        _context.InterviewResponse.Add(interviewResponse);
-                                        await _context.SaveChangesAsync();
-                                        await response.WriteAsJsonAsync(interviewResponse);
+                                            try
+                                            {
+                                                DateTime now = DateTime.Now;
+                                                InterviewResponse interviewResponse = new InterviewResponse
+                                                {
+                                                    CreatedAt = now,
+                                                    UpdatedAt = now,
+                                                    ResponseText = responseSerializer.ResponseText,
+                                                    InterviewInvitationId = invitation.Id,
+                                                    InterviewQuestionId = (int)responseSerializer.InterviewQuestionId,
+                                                };
+                                                _context.InterviewResponse.Add(interviewResponse);
+                                                await _context.SaveChangesAsync();
+                                                await response.WriteAsJsonAsync(interviewResponse);
+                                            }
+                                            catch (Exception ex)
+                                            {
+                                                response = req.CreateResponse(HttpStatusCode.BadRequest);
+                                                response.WriteString("Error with sent parameters");
+                                            }
+                                        }
+                                        else
+                                        {
+                                            response = req.CreateResponse(HttpStatusCode.Unauthorized);
+                                        }                                        
                                     }
                                 }
                             }
                         }
                         else if (req.Method == "DELETE")
                         {
-                            // ADMIN ONLY.
+                            InterviewInvitation invitation = _context.InterviewInvitation.FirstOrDefault(i => i.InvitationCode == responseSerializer.InvitationCode);
                             InterviewResponse interviewResponse = _context.InterviewResponse.Find(responseSerializer.Id);
                             if(interviewResponse != null)
                             {

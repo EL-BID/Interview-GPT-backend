@@ -7,23 +7,23 @@ using System.Net;
 
 namespace InterviewAiFunction
 {
-    public class InterviewResponsesApi
+    public class InterviewResponsesPublicApi
     {
         private readonly ILogger _logger;
         private readonly InterviewContext _context;
 
-        public InterviewResponsesApi(ILoggerFactory loggerFactory)
+        public InterviewResponsesPublicApi(ILoggerFactory loggerFactory)
         {
             _logger = loggerFactory.CreateLogger<InterviewInvitationApi>();
         }
 
-        public InterviewResponsesApi(InterviewContext context, ILoggerFactory loggerFactory)
+        public InterviewResponsesPublicApi(InterviewContext context, ILoggerFactory loggerFactory)
         {
             _context = context;
             _logger = loggerFactory.CreateLogger<InterviewInvitationApi>();
         }
 
-        [Function("InterviewResponses")]
+        [Function("InterviewResponsesPublic")]
         public async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "public/responses")] HttpRequestData req)
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");

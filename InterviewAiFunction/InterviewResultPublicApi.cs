@@ -1,4 +1,5 @@
 using InterviewAiFunction.Serializers;
+using InterviewAiFunction.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
@@ -10,38 +11,38 @@ using System.Text.Json;
 
 namespace InterviewAiFunction
 {
-    public class InterviewResultApi
+    public class InterviewResultPublicApi
     {
         private readonly ILogger _logger;
         private readonly InterviewContext _context;
 
-        public InterviewResultApi(ILoggerFactory loggerFactory)
+        public InterviewResultPublicApi(ILoggerFactory loggerFactory)
         {
             _logger = loggerFactory.CreateLogger<InterviewQuestionApi>();
         }
 
-        public InterviewResultApi(InterviewContext context, ILoggerFactory loggerFactory)
+        public InterviewResultPublicApi(InterviewContext context, ILoggerFactory loggerFactory)
         {
             _context = context;
-            _logger = loggerFactory.CreateLogger<InterviewResultApi>();
+            _logger = loggerFactory.CreateLogger<InterviewResultPublicApi>();
         }
 
 
 
-        [Function("InterviewResult")]
+        [Function("InterviewResultPublic")]
         public async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "put", "delete", Route = "public/result")] HttpRequestData req)
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
-            var response = req.CreateResponse(HttpStatusCode.OK);
-
+            var response = req.CreateResponse(HttpStatusCode.OK);            
             if (req.Method == "GET")
             {
                 try
                 {
+                    // not validated as it's supposed to be a one-one relation between invitation and result (as of now)
                     string invitationCode = req.Query["InvitationCode"];
                     InterviewInvitation invitation = _context.InterviewInvitation.FirstOrDefault(r=>r.InvitationCode== invitationCode);
                     if(invitation != null)
-                    {
+                    {                        
                         InterviewResult result = _context.InterviewResult.Find(invitation.Id);
                         await response.WriteAsJsonAsync(result);
                     }
@@ -102,9 +103,10 @@ namespace InterviewAiFunction
                         }
                         else if (req.Method == "DELETE")
                         {
-                            //TODO: ADMIN ONLY
+                            
                             InterviewResult result = _context.InterviewResult.Find(resultSerializer.Id);
-                            if(result != null)
+                            InterviewInvitation invitation = _context.InterviewInvitation.FirstOrDefault(i => i.InvitationCode == resultSerializer.InvitationCode);
+                            if (result != null && result.InterviewInvitationId==invitation.Id)
                             {
                                 _context.InterviewResult.Remove(result);
                                 await _context.SaveChangesAsync();

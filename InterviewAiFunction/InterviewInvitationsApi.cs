@@ -26,7 +26,7 @@ namespace InterviewAiFunction
         public InterviewInvitationsApi(InterviewContext context, ILoggerFactory loggerFactory)
         {
             _context = context;
-            _logger = loggerFactory.CreateLogger<InterviewResultApi>();
+            _logger = loggerFactory.CreateLogger<InterviewResultPublicApi>();
         }
 
         [Function("InterviewResults")]

@@ -30,5 +30,29 @@ namespace InterviewAiFunction.Utils
         {
             return _context.Interview.Any(x=>x.Id == invitation.InterviewId && x.CreatedBy == userEmail.ToLower());
         }
+
+        public bool IsResponseInvitation(InterviewInvitation invitation, int responseId)
+        {
+            return _context.InterviewResponse.Any(x => x.Id == responseId && x.InterviewInvitationId == invitation.Id);
+        }
+        public bool IsResultInvitation(InterviewInvitation invitation, int resultId)
+        {
+            return _context.InterviewResult.Any(x => x.Id == resultId && x.InterviewInvitationId == invitation.Id);
+        }
+        public bool IsInterviewQuestionforInvitation(int interviewQuestionId, InterviewInvitation invitation)
+        {
+            try
+            {
+                InterviewQuestion iq = _context.InterviewQuestion.Find(interviewQuestionId);
+                if (iq != null)
+                {
+                    return _context.InterviewInvitation.Any(x => x.InterviewId == iq.InterviewId && x.Id == invitation.Id);
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
     }
 }
