@@ -52,6 +52,9 @@ namespace InterviewAiFunction.Utils
                 {
                     return false;
                 }
+            }catch(Exception ex)
+            {
+                return false;
             }
         }
     }

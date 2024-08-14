@@ -101,7 +101,10 @@ namespace InterviewAiFunction
                                     Uuid = System.Guid.NewGuid().ToString(),
                                     CreatedAt = DateTime.Now,
                                     CreatedBy = email,
-                                    Status = "inactive"
+                                    Status = "inactive",
+                                    Model = interviewSerializer.Model ?? null,
+                                    Description = interviewSerializer.Description ?? null,
+                                    Prompt = interviewSerializer.Prompt ?? null
                                 };
                                 _context.Interview.Add(interview);
                                 await _context.SaveChangesAsync();
