@@ -11,23 +11,23 @@ using System.Text.Json;
 
 namespace InterviewAiFunction
 {
-    public class InterviewResponsePublicApi
+    public class PublicInterviewResponseApi
     {
         private readonly ILogger _logger;
         private readonly InterviewContext _context;
 
-        public InterviewResponsePublicApi(ILoggerFactory loggerFactory)
+        public PublicInterviewResponseApi(ILoggerFactory loggerFactory)
         {
             _logger = loggerFactory.CreateLogger<InterviewQuestionApi>(); ;
         }
 
-        public InterviewResponsePublicApi(InterviewContext context, ILoggerFactory loggerFactory)
+        public PublicInterviewResponseApi(InterviewContext context, ILoggerFactory loggerFactory)
         {
             _context = context;
-            _logger = loggerFactory.CreateLogger<InterviewResponsePublicApi>();
+            _logger = loggerFactory.CreateLogger<PublicInterviewResponseApi>();
         }
 
-        [Function("InterviewResponsePublic")]
+        [Function("PublicInterviewResponseApi")]
         public async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "put", "delete", Route = "public/response")] HttpRequestData req)
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
@@ -40,7 +40,7 @@ namespace InterviewAiFunction
                     string invitationCode = req.Query["InvitationCode"];
                     int responseId = int.Parse(req.Query["Id"]);
                     InterviewInvitation invitation = _context.InterviewInvitation.FirstOrDefault(i=>i.InvitationCode == invitationCode);    
-                    if(invitation != null && dbCommons.IsResponseInvitation(invitation, responseId))
+                    if(invitation != null && dbCommons.IsValidInvitationForResponse(invitation, responseId))
                     {
                         InterviewResponse interviewResponse = _context.InterviewResponse.Find(responseId);
                         await response.WriteAsJsonAsync(interviewResponse);
@@ -69,14 +69,20 @@ namespace InterviewAiFunction
                             if (responseSerializer.InvitationCode != null)
                             {
                                 InterviewInvitation invitation = _context.InterviewInvitation.FirstOrDefault(i => i.InvitationCode == responseSerializer.InvitationCode);
-                                if(invitation != null)
+
+                                /*
+                                 TODO:
+                                    1. Validate that session id belongs to invited user.
+                                 */
+                                if(invitation != null && dbCommons.IsValidInvitationForSession(invitation, responseSerializer.SessionId))
                                 {
                                     if(responseSerializer.Id != null)
                                     {
+                                        // UPDATE
                                         InterviewResponse interviewResponse = _context.InterviewResponse.Find(responseSerializer.Id);
                                         if(interviewResponse != null)
                                         {
-                                            if(dbCommons.IsResponseInvitation(invitation, interviewResponse.Id))
+                                            if(dbCommons.IsValidInvitationForResponse(invitation, interviewResponse.Id))
                                             {
                                                 interviewResponse.ResponseText = responseSerializer.ResponseText ?? interviewResponse.ResponseText;
                                                 interviewResponse.UpdatedAt = DateTime.Now;
@@ -95,6 +101,7 @@ namespace InterviewAiFunction
                                             response.WriteString("Result not found.");
                                         }
                                     }
+                                    // CREATE
                                     else
                                     {
                                         if(dbCommons.IsInterviewQuestionforInvitation((int)responseSerializer.InterviewQuestionId, invitation))
@@ -107,7 +114,7 @@ namespace InterviewAiFunction
                                                     CreatedAt = now,
                                                     UpdatedAt = now,
                                                     ResponseText = responseSerializer.ResponseText,
-                                                    InterviewInvitationId = invitation.Id,
+                                                    SessionId = responseSerializer.SessionId,
                                                     InterviewQuestionId = (int)responseSerializer.InterviewQuestionId,
                                                 };
                                                 _context.InterviewResponse.Add(interviewResponse);
@@ -126,13 +133,17 @@ namespace InterviewAiFunction
                                         }                                        
                                     }
                                 }
+                                else
+                                {
+                                    response = req.CreateResponse(HttpStatusCode.Unauthorized);
+                                }
                             }
                         }
                         else if (req.Method == "DELETE")
                         {
                             InterviewInvitation invitation = _context.InterviewInvitation.FirstOrDefault(i => i.InvitationCode == responseSerializer.InvitationCode);
                             InterviewResponse interviewResponse = _context.InterviewResponse.Find(responseSerializer.Id);
-                            if(interviewResponse != null)
+                            if(interviewResponse != null && dbCommons.IsValidInvitationForResponse(invitation, interviewResponse.Id))
                             {
                                 _context.InterviewResponse.Remove(interviewResponse);
                                 await _context.SaveChangesAsync();

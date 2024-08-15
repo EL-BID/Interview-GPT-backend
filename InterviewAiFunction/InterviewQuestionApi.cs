@@ -87,7 +87,7 @@ namespace InterviewAiFunction
                             }
                             else
                             {
-                                if(questionSerializer.InterviewId != null && dbCommons.IsUserInterviewId((int)questionSerializer.InterviewId, email))
+                                if(questionSerializer.InterviewId != null && dbCommons.IsValidAdminUserForInterview((int)questionSerializer.InterviewId, email))
                                 {
                                     InterviewQuestion question = new InterviewQuestion
                                     {

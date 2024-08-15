@@ -9,7 +9,7 @@ namespace InterviewAiFunction.Serializers
     internal class InterviewResultSerializer
     {
         public int? Id { get; set; }
-        public int? InterviewInviteId { get; set; }
+        public int SessionId { get; set; }
         public string? ResultUser { get; set; }
         public string? ResultAi { get; set; }
         public DateTime? CreatedAt { get; set; }

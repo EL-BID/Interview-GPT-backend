@@ -26,7 +26,7 @@ namespace InterviewAiFunction
         public InterviewResultsApi(InterviewContext context, ILoggerFactory loggerFactory)
         {
             _context = context;
-            _logger = loggerFactory.CreateLogger<InterviewResultPublicApi>();
+            _logger = loggerFactory.CreateLogger<PublicInterviewResultApi>();
         }
 
         [Function("InterviewResults")]
@@ -40,24 +40,24 @@ namespace InterviewAiFunction
             try
             {
                 int interviewId = int.Parse(interviewIdParam);
-                if (dbCommons.IsUserInterviewId(interviewId, email))
+                if (dbCommons.IsValidAdminUserForInterview(interviewId, email))
                 {
                     var responses = _context.InterviewResult
-                        .Join(
-                            _context.InterviewInvitation, ir => ir.InterviewInvitationId, ii => ii.Id,
-                            (ir, ii) => new
-                            {
-                                ir.Id,
-                                ir.InterviewInvitationId,
-                                ir.ResultAi,
-                                ir.ResultUser,
-                                ir.CreatedAt,
-                                ir.UpdatedAt,
-                                ii.InterviewId
-                            }
-                        )
+                        //.Join(
+                        //    _context.InterviewInvitation, ir => ir.InterviewInvitationId, ii => ii.Id,
+                        //    (ir, ii) => new
+                        //    {
+                        //        ir.Id,
+                        //        ir.InterviewInvitationId,
+                        //        ir.ResultAi,
+                        //        ir.ResultUser,
+                        //        ir.CreatedAt,
+                        //        ir.UpdatedAt,
+                        //        ii.InterviewId
+                        //    }
+                        //)
                         .Where(
-                            x => x.InterviewId == interviewId
+                            x => x.SessionId == interviewId
                         ).ToList();
                     await response.WriteAsJsonAsync(responses);
                 }

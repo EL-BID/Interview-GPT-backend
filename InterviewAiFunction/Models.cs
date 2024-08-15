@@ -23,7 +23,7 @@ namespace InterviewAiFunction
         }
 
         public DbSet<Interview> Interview { get; set; }
-        public DbSet<InterviewUser> InterviewUser { get; set; }
+        public DbSet<InterviewSession> InterviewSession { get; set; }
         public DbSet<InterviewQuestion> InterviewQuestion { get; set; }
         public DbSet<InterviewInvitation> InterviewInvitation { get; set; }
         public DbSet<InterviewResult> InterviewResult { get; set; }
@@ -42,15 +42,10 @@ namespace InterviewAiFunction
         public string? Model { get; set; }
         public required string Uuid {  get; set; }
         public required string Status { get; set; }
+        public bool AuthOnly { get; set; }
         public virtual List<InterviewQuestion>? Questions { get; set; }
         public virtual List<InterviewInvitation>? Invitations { get; set; }
 
-    }
-
-    public class InterviewUser
-    {
-        public int Id { get; set; }
-        public required string Username { get; set; }
     }
 
     public class InterviewQuestion
@@ -69,18 +64,28 @@ namespace InterviewAiFunction
         public string Email { get; set; }
         public string InvitationCode { get; set; }
         public string? InvitationStatus { get; set; }
-        public DateTime? CreatedAt { get; set; }
+        public DateTime CreatedAt { get; set; }
         public virtual List<InterviewResult>? Results { get; set; }
         public virtual List<InterviewResponse>? Responses { get; set; }
+    }
+
+    public class InterviewSession
+    {
+        public int Id { get; set; }
+        public int InterviewId { get; set; }
+        public string? Title { get; set; }
+        public string SessionUser { get; set; }
+        public string? Result { get; set; }
+        public string Status { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
 
 
     }
-
     public class InterviewResult
     {
         public int Id { get; set; }
-        public int InterviewInvitationId { get; set;}
-        public string? ResultUser { get; set; }
+        public int SessionId { get; set;}
         public string? ResultAi { get; set; }
         public DateTime? CreatedAt { get; set;}
         public DateTime? UpdatedAt { get; set; }
@@ -90,7 +95,7 @@ namespace InterviewAiFunction
     public class InterviewResponse
     {
         public int Id { get; set; }
-        public int InterviewInvitationId { get; set; }
+        public int SessionId { get; set; }
         public int InterviewQuestionId { get; set; }
         public string ResponseText { get; set; }
         public DateTime CreatedAt { get; set; }

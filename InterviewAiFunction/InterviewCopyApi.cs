@@ -47,7 +47,7 @@ namespace InterviewAiFunction
                 InterviewSerializer interviewSerializer = JsonSerializer.Deserialize<InterviewSerializer>(requestBody);
                 if (interviewSerializer != null)
                 {
-                    if (interviewSerializer.Id != null && dbCommons.IsUserInterviewId((int)interviewSerializer.Id, email))
+                    if (interviewSerializer.Id != null && dbCommons.IsValidAdminUserForInterview((int)interviewSerializer.Id, email))
                     {
                         Interview interview = _context.Interview.Find(interviewSerializer.Id);
                         if (interview != null && interview.CreatedBy == email)

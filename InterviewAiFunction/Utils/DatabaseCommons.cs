@@ -21,9 +21,14 @@ namespace InterviewAiFunction.Utils
             return _context.Interview.Any(x => x.Id == interviewId && x.CreatedBy == userEmail.ToLower());
         }
 
-        public bool IsUserInterviewId(int interviewId, string userEmail)
+        public bool IsValidInvitationForInterview(InterviewInvitation invitation, string interviewUuid)
         {
-            return _context.Interview.Any(x=>x.Id==interviewId && x.CreatedBy==userEmail.ToLower());
+            return _context.Interview.Any(x=>x.Uuid==interviewUuid && x.Id==invitation.InterviewId);
+        }
+
+        public bool IsValidAdminUserForInterview(int interviewId, string email)
+        {
+            return _context.Interview.Any(x => x.CreatedBy == email && x.Id == interviewId);
         }
 
         public bool IsUserInvitation(InterviewInvitation invitation, string userEmail)
@@ -31,13 +36,19 @@ namespace InterviewAiFunction.Utils
             return _context.Interview.Any(x=>x.Id == invitation.InterviewId && x.CreatedBy == userEmail.ToLower());
         }
 
-        public bool IsResponseInvitation(InterviewInvitation invitation, int responseId)
+        public bool IsValidInvitationForSession(InterviewInvitation invitation, int sessionId)
         {
-            return _context.InterviewResponse.Any(x => x.Id == responseId && x.InterviewInvitationId == invitation.Id);
+            return _context.InterviewSession.Any(x=> x.Id==sessionId && x.SessionUser.ToLower()==invitation.Email.ToLower());
         }
-        public bool IsResultInvitation(InterviewInvitation invitation, int resultId)
+
+        public bool IsValidInvitationForResponse(InterviewInvitation invitation, int responseId)
         {
-            return _context.InterviewResult.Any(x => x.Id == resultId && x.InterviewInvitationId == invitation.Id);
+            return _context.InterviewResponse.Any(x => x.Id == responseId && IsValidInvitationForSession(invitation, x.SessionId));
+        }
+
+        public bool IsValidInvitationForResult(InterviewInvitation invitation, int resultId)
+        {
+            return _context.InterviewResult.Any(x => x.Id == resultId && IsValidInvitationForSession(invitation, x.SessionId));
         }
         public bool IsInterviewQuestionforInvitation(int interviewQuestionId, InterviewInvitation invitation)
         {

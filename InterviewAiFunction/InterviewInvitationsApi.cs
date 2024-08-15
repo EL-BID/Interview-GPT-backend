@@ -26,7 +26,7 @@ namespace InterviewAiFunction
         public InterviewInvitationsApi(InterviewContext context, ILoggerFactory loggerFactory)
         {
             _context = context;
-            _logger = loggerFactory.CreateLogger<InterviewResultPublicApi>();
+            _logger = loggerFactory.CreateLogger<PublicInterviewResultApi>();
         }
 
         [Function("InterviewResults")]
@@ -40,7 +40,7 @@ namespace InterviewAiFunction
             try
             {
                 int interviewId = int.Parse(interviewIdParam);
-                if (dbCommons.IsUserInterviewId(interviewId, email))
+                if (dbCommons.IsValidAdminUserForInterview(interviewId, email))
                 {
                     var invitations = _context.InterviewInvitation.Where(i=>i.InterviewId == interviewId).ToList();
                     await response.WriteAsJsonAsync(invitations);

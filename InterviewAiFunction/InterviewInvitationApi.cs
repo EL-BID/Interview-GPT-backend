@@ -98,7 +98,7 @@ namespace InterviewAiFunction
                             }
                             else
                             {
-                                if (invitationSerializer.InterviewId != null && dbCommons.IsUserInterviewId((int)invitationSerializer.InterviewId, email))
+                                if (invitationSerializer.InterviewId != null && dbCommons.IsValidAdminUserForInterview((int)invitationSerializer.InterviewId, email))
                                 {
                                     InterviewInvitation invitation = new InterviewInvitation
                                     {
