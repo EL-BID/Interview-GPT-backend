@@ -1,8 +1,10 @@
+using System.Data.Common;
 using System.Net;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using DarkLoop.Azure.Functions.Authorization;
 using InterviewAiFunction.Serializers;
+using InterviewAiFunction.Utils;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
@@ -35,6 +37,7 @@ namespace InterviewAiFunction
             _logger.LogInformation("C# HTTP trigger function processed a request.");
 
             var email = "";
+            DatabaseCommons dbCommons = new DatabaseCommons(_context);
             
             var response = req.CreateResponse(HttpStatusCode.OK);
             if (!req.Identities.Any())
@@ -74,7 +77,7 @@ namespace InterviewAiFunction
                             if (interviewSerializer.Uuid != null)
                             {
                                 // assumes is a request for update
-                                Interview interview = _context.Interview.FirstOrDefault(x => x.Uuid == interviewSerializer.Uuid && x.CreatedBy==email);
+                                Interview interview = _context.Interview.FirstOrDefault(x => x.Uuid == interviewSerializer.Uuid && x.CreatedBy.ToLower()==email);
                                 if (interview != null)
                                 {
                                     interview.Title = interviewSerializer.Title ?? interview.Title;
@@ -114,7 +117,7 @@ namespace InterviewAiFunction
                         }
                         else if (req.Method == "DELETE")
                         {
-                            Interview interview = _context.Interview.FirstOrDefault(x => x.Uuid == interviewSerializer.Uuid && x.CreatedBy == email);
+                            Interview interview = _context.Interview.FirstOrDefault(x => x.Uuid == interviewSerializer.Uuid && x.CreatedBy.ToLower() == email);
                             if (interview != null)
                             {
                                 _context.Interview.Remove(interview);
@@ -129,7 +132,11 @@ namespace InterviewAiFunction
                 }
                 catch (Exception ex)
                 {
+                    //response = req.CreateResponse(HttpStatusCode.InternalServerError);
+                    //return response;
                     _logger.LogError(ex.Message);
+                    response = dbCommons.ProcessDbException(req, ex);
+                    return response;                    
                 }
             }
             return response;

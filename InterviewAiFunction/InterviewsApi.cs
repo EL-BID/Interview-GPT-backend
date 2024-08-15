@@ -38,7 +38,7 @@ namespace InterviewAiFunction
             var response = req.CreateResponse(HttpStatusCode.OK);
             if (req.Identities.Any())
             {
-                var email = req.Identities.First().Name;
+                var email = req.Identities.First().Name.ToLower();
                 if (includeAll != null && includeAll == "yes")
                 {
                     var interviews = _context.Interview.Where(i => i.CreatedBy.ToLower() == email.ToLower()).Select(

@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Net;
@@ -45,7 +46,7 @@ namespace InterviewAiFunction
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
             var response = req.CreateResponse(HttpStatusCode.OK);
-            var email = req.Identities.First().Name;
+            var email = req.Identities.First().Name.ToLower();
             DatabaseCommons dbCommons = new DatabaseCommons(_context);
             if(req.Method=="GET")
             {
@@ -61,14 +62,14 @@ namespace InterviewAiFunction
                         else
                         {
                             response = req.CreateResponse(HttpStatusCode.BadRequest);
-                            response.WriteString("Invitation not found.");
+                            await response.WriteStringAsync("Invitation not found.");
                         }
                     }
                 }
                 catch(Exception ex)
                 {
                     response = req.CreateResponse(HttpStatusCode.BadRequest);
-                    response.WriteString("Error with arguments");
+                    await response.WriteStringAsync("Error with arguments");
                 }                
             }
             else
@@ -132,15 +133,7 @@ namespace InterviewAiFunction
                 catch(Exception ex)
                 {
                     _logger.LogError(ex.Message);
-                    if (ex is DbUpdateException)
-                    {
-                        response = req.CreateResponse(HttpStatusCode.BadRequest);
-                        response.WriteString("Error updating the database check values provided.");
-                    }
-                    else
-                    {
-                        response = req.CreateResponse(HttpStatusCode.BadRequest);
-                    }
+                    response = dbCommons.ProcessDbException(req, ex);
                 }                
             }
             return response;

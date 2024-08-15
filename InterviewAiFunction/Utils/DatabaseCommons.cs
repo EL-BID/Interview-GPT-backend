@@ -1,6 +1,11 @@
-﻿using System;
+﻿using Azure;
+using Microsoft.Azure.Functions.Worker.Http;
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -67,6 +72,28 @@ namespace InterviewAiFunction.Utils
             {
                 return false;
             }
+        }
+
+        public HttpResponseData ProcessDbException(HttpRequestData req, Exception ex)
+        {
+            var response = req.CreateResponse(HttpStatusCode.InternalServerError);
+            if (ex is DbUpdateException)
+            {
+                var sqlException = ex.GetBaseException() as SqlException;
+                if (sqlException != null)
+                {
+                    var number = sqlException.Number;
+                    if (number == 547)
+                    {
+                        response.WriteStringAsync("You must delete all related data before deleting this record.");
+                    }
+                    else
+                    {
+                        response.WriteStringAsync(sqlException.Message);
+                    }
+                }                
+            }
+            return response;
         }
     }
 }

@@ -39,7 +39,7 @@ namespace InterviewAiFunction
             _logger.LogInformation("C# HTTP trigger function processed a request.");
             var response = req.CreateResponse(HttpStatusCode.OK);
             //TODO admin validation.
-            var email = req.Identities.First().Name;
+            var email = req.Identities.First().Name.ToLower();
             DatabaseCommons dbCommons = new DatabaseCommons(_context);
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
             try
@@ -50,7 +50,7 @@ namespace InterviewAiFunction
                     if (interviewSerializer.Id != null && dbCommons.IsValidAdminUserForInterview((int)interviewSerializer.Id, email))
                     {
                         Interview interview = _context.Interview.Find(interviewSerializer.Id);
-                        if (interview != null && interview.CreatedBy == email)
+                        if (interview != null && interview.CreatedBy.ToLower() == email)
                         {
                             List<InterviewQuestion> questions = _context.InterviewQuestion.Where(q => q.InterviewId == interview.Id).ToList();
                             Interview interviewCopy = new Interview
@@ -83,35 +83,26 @@ namespace InterviewAiFunction
                         else
                         {
                             response = req.CreateResponse(HttpStatusCode.BadRequest);
-                            response.WriteString("Interview not found.");
+                            await response.WriteStringAsync("Interview not found.");
                         }
                     }
                     else
                     {
                         response = req.CreateResponse(HttpStatusCode.BadRequest);
-                        response.WriteString("Missing Id from request");
+                        await response.WriteStringAsync("Missing Id from request");
                     }
                 }
                 else
                 {
                     response = req.CreateResponse(HttpStatusCode.BadRequest);
-                    response.WriteString("Error with arguments.");
+                    await response.WriteStringAsync("Error with arguments.");
                 }
 
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex.Message);
-                if (ex is DbUpdateException)
-                {
-                    response = req.CreateResponse(HttpStatusCode.BadRequest);
-                    response.WriteString("Error updating the database check values provided.");
-                }
-                else
-                {
-                    response = req.CreateResponse(HttpStatusCode.BadRequest);
-                }
-                
+                response = dbCommons.ProcessDbException(req, ex);                
             }
             return response;
         }
