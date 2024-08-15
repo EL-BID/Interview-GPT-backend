@@ -33,7 +33,8 @@ namespace InterviewAiFunction
         public async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "put", "delete", Route = "public/result")] HttpRequestData req)
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
-            var response = req.CreateResponse(HttpStatusCode.OK);            
+            var response = req.CreateResponse(HttpStatusCode.OK);
+            DatabaseCommons dbCommons = new DatabaseCommons(_context);
             if (req.Method == "GET")
             {
                 try
@@ -49,13 +50,13 @@ namespace InterviewAiFunction
                     else
                     {
                         response = req.CreateResponse(HttpStatusCode.BadRequest);
-                        response.WriteString("Result not found.");
+                        await response.WriteStringAsync("Result not found.");
                     }
                     
                 }catch(Exception ex)
                 {
                     response = req.CreateResponse(HttpStatusCode.BadRequest);
-                    response.WriteString("Arguments error");
+                    await response.WriteStringAsync("Arguments error");
                 }
             }
             else
@@ -120,15 +121,7 @@ namespace InterviewAiFunction
                 }catch (Exception ex)
                 {
                     _logger.LogError(ex.Message);
-                    if (ex is DbUpdateException)
-                    {
-                        response = req.CreateResponse(HttpStatusCode.BadRequest);
-                        response.WriteString("Error updating the database check values provided.");
-                    }
-                    else
-                    {
-                        response = req.CreateResponse(HttpStatusCode.BadRequest);
-                    }
+                    response = dbCommons.ProcessDbException(req, ex);
                 }
 
             }

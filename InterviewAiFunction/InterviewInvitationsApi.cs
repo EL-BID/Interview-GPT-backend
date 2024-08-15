@@ -35,7 +35,7 @@ namespace InterviewAiFunction
             _logger.LogInformation("C# HTTP trigger function processed a request.");
             var response = req.CreateResponse(HttpStatusCode.OK);
             DatabaseCommons dbCommons = new DatabaseCommons(_context);
-            var email = req.Identities.First().Name;
+            var email = req.Identities.First().Name.ToLower();
             string interviewIdParam = req.Query["InterviewId"];
             try
             {

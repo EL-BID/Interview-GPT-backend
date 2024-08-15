@@ -47,7 +47,7 @@ namespace InterviewAiFunction
             else
             {
                 response = req.CreateResponse(HttpStatusCode.BadRequest);
-                response.WriteString("Bad arguments");
+                await response.WriteStringAsync("Bad arguments");
             }
 
             return response;
