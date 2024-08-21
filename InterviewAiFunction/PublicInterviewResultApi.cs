@@ -120,6 +120,10 @@ namespace InterviewAiFunction
                             }
                         }
                     }
+                    else
+                    {
+                        response = req.CreateResponse(HttpStatusCode.BadRequest);
+                    }
                 }catch (Exception ex)
                 {
                     _logger.LogError(ex.Message);

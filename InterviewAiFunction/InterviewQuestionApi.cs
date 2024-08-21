@@ -64,14 +64,14 @@ namespace InterviewAiFunction
                 try
                 {
                     InterviewQuestionSerializer questionSerializer = JsonSerializer.Deserialize<InterviewQuestionSerializer>(requestBody);
-                    if(questionSerializer != null)
+                    if (questionSerializer != null)
                     {
-                        if(req.Method=="PUT")
+                        if (req.Method == "PUT")
                         {
-                            if(questionSerializer.Id != null)
+                            if (questionSerializer.Id != null)
                             {
                                 InterviewQuestion question = _context.InterviewQuestion.Find(questionSerializer.Id);
-                                if(question != null && dbCommons.IsUserQuestion(question, email))
+                                if (question != null && dbCommons.IsUserQuestion(question, email))
                                 {
                                     question.QuestionOrder = questionSerializer.QuestionOrder ?? question.QuestionOrder;
                                     question.QuestionText = questionSerializer.QuestionText ?? question.QuestionText;
@@ -94,29 +94,32 @@ namespace InterviewAiFunction
                                         QuestionText = questionSerializer.QuestionText,
                                         QuestionOrder = questionSerializer.QuestionOrder ?? 0,
                                         IsRequired = questionSerializer.IsRequired ?? true,
-                                        InterviewId = (int) questionSerializer.InterviewId
+                                        InterviewId = (int)questionSerializer.InterviewId
                                     };
                                     _context.InterviewQuestion.Add(question);
                                     await _context.SaveChangesAsync();
                                     await response.WriteAsJsonAsync(question);
                                 }
 
-                                
+
                             }
                         }
-                    }
-                    else if (req.Method=="DELETE")
-                    {
-                        InterviewQuestion question = _context.InterviewQuestion.Find(questionSerializer.Id);
-                        if (question != null && dbCommons.IsUserQuestion(question, email))
+
+                        else if (req.Method == "DELETE")
                         {
-                            _context.InterviewQuestion.Remove(question);
-                            await _context.SaveChangesAsync();
+                            InterviewQuestion question = _context.InterviewQuestion.Find(questionSerializer.Id);
+                            if (question != null && dbCommons.IsUserQuestion(question, email))
+                            {
+                                _context.InterviewQuestion.Remove(question);
+                                await _context.SaveChangesAsync();
+                            }
+                            else
+                            {
+                                response = req.CreateResponse(HttpStatusCode.NotFound);
+                            }
                         }
-                        else
-                        {
-                            response = req.CreateResponse(HttpStatusCode.NotFound);
-                        }
+                    } else{
+                        response = req.CreateResponse(HttpStatusCode.BadRequest);                        
                     }
                 }
                 catch(Exception ex)
