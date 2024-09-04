@@ -1,3 +1,4 @@
+using InterviewAiFunction.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
@@ -29,18 +30,35 @@ namespace InterviewAiFunction
         [Function("InterviewPublicApi")]
         public async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "public/interview")] HttpRequestData req)
         {
-
             var response = req.CreateResponse(HttpStatusCode.OK);
-            var interviewUuid = req.Query["Uuid"];
-            if (interviewUuid != null)
+            try
             {
+                var interviewUuid = req.Query["Uuid"];
+                var invitationCode = req.Query["InvitationCode"];
+                DatabaseCommons dbCommons = new DatabaseCommons(_context);
+                InterviewInvitation invitation = _context.InterviewInvitation.FirstOrDefault(x => x.InvitationCode == invitationCode);
                 Interview interview = _context.Interview.Include("Questions").FirstOrDefault(x => x.Uuid == interviewUuid);
-                await response.WriteAsJsonAsync(interview);
+
+                if (interview != null)
+                {
+                    if (_context.InterviewInvitation.Any(x => x.InterviewId == interview.Id && x.InvitationCode == invitationCode))
+                    {
+                        await response.WriteAsJsonAsync(interview);
+                    }
+                    else
+                    {
+                        response = req.CreateResponse(HttpStatusCode.Forbidden);
+                    }
+                }
+                else
+                {
+                    response = req.CreateResponse(HttpStatusCode.NotFound);
+                }
             }
-            else
+            catch(Exception ex)
             {
-                response = req.CreateResponse(HttpStatusCode.NotFound);
-            }
+                response = req.CreateResponse(HttpStatusCode.BadRequest);
+            }            
             return response;
         }
     }

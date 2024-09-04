@@ -35,6 +35,7 @@ namespace InterviewAiFunction.Utils
         {
             return _context.Interview.Any(x=>x.Id == invitation.InterviewId && x.CreatedBy == userEmail.ToLower());
         }
+        
 
         public bool IsResponseInvitation(InterviewInvitation invitation, int responseId)
         {
