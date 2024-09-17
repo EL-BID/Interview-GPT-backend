@@ -56,7 +56,7 @@ namespace InterviewAiFunction
                             i.AuthOnly,
                             i.InvitationOnly,
                             Questions = _context.InterviewQuestion.Where(q=>q.InterviewId==i.Id).ToList(),
-                            Invitations = _context.InterviewInvitation.Where(iv=>iv.InterviewId==i.Id).Include("Results").Include("Responses").ToList()
+                            Invitations = _context.InterviewInvitation.Where(iv=>iv.InterviewId==i.Id).ToList()
                         }
                     ).ToList();
                     await response.WriteAsJsonAsync(interviews);

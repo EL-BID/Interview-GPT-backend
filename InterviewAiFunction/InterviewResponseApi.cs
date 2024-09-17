@@ -40,20 +40,20 @@ namespace InterviewAiFunction
             {
                 try
                 {
-                    int responseId = int.Parse(req.Query["Id"]);
+                    
                     string interviewUuid = req.Query["InterviewUuid"]; //gets all the sessions for an interview.
-                    string isAdminParam = req.Query["Admin"];
-                    int sessionId = int.Parse(req.Query["SessionId"]);
+                    string isAdminParam = req.Query["Admin"];                    
                     bool adminRights = false;
                     if(isAdminParam!=null && isAdminParam=="true" && dbCommons.IsValidAdminUserForInterviewUuid(interviewUuid, email))
                     {
                         adminRights = true;
                     }
 
-                    if (responseId != null)
+                    if (req.Query["Id"] != null)
                     {
+                        int responseId = int.Parse(req.Query["Id"]);
                         //single item
-                        if(dbCommons.IsValidUserForResponse(responseId, email) || adminRights)
+                        if (dbCommons.IsValidUserForResponse(responseId, email) || adminRights)
                         {
                             InterviewResponse interviewResponse = _context.InterviewResponse.FirstOrDefault(x => x.Id == responseId);
                             await response.WriteAsJsonAsync(interviewResponse);
@@ -71,6 +71,7 @@ namespace InterviewAiFunction
                             Interview interview = _context.Interview.FirstOrDefault(x => x.Uuid == interviewUuid);
                             if (interview != null)
                             {
+                                int sessionId = int.Parse(req.Query["SessionId"]);
                                 // only one session
                                 var interviewResponses = _context.InterviewResponse.Join(_context.InterviewSession, ir => ir.SessionId, ses => ses.Id, (ir, ses) => new
                                 {

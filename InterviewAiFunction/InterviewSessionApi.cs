@@ -39,8 +39,7 @@ namespace InterviewAiFunction
             {
                 try
                 {
-                    
-                    int sessionId = int.Parse(req.Query["Id"]);
+                                        
                     string interviewUuid = req.Query["InterviewUuid"]; //gets all the sessions for an interview.
                     string isAdminParam = req.Query["Admin"];
                     bool adminRights = false;
@@ -50,8 +49,9 @@ namespace InterviewAiFunction
                     }
                     // TODO: add option for admin where it gets sessions unfiltered by user
 
-                    if (sessionId != null)
+                    if (req.Query["Id"] != null)
                     {
+                        int sessionId = int.Parse(req.Query["Id"]);
                         if (dbCommons.IsValidUserForSession(sessionId, email) || adminRights)
                         {
                             var session = _context.InterviewSession.FirstOrDefault(x => x.Id == sessionId);

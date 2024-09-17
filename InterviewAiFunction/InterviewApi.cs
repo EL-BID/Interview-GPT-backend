@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.Extensions.Logging;
 using static Microsoft.ApplicationInsights.MetricDimensionNames.TelemetryContext;
 
@@ -59,7 +60,8 @@ namespace InterviewAiFunction
                 {
                     if(adminOption != null && adminOption == "true")
                     {
-                        Interview interview = _context.Interview.Include("Questions").Include("Invitations").Include("Invitations.Responses").Include("Invitations.Results").FirstOrDefault(x => x.Uuid == interviewUuid && x.CreatedBy == email);
+                        //Interview interview = _context.Interview.Include("Questions").Include("Invitations").Include("Invitations.Responses").Include("Invitations.Results").FirstOrDefault(x => x.Uuid == interviewUuid && x.CreatedBy == email);
+                        Interview interview = _context.Interview.Include("Questions").Include("Invitations").FirstOrDefault(x => x.Uuid == interviewUuid && x.CreatedBy == email);
                         await response.WriteAsJsonAsync(interview);
                     }
                     else
@@ -67,11 +69,12 @@ namespace InterviewAiFunction
                         Interview interview = _context.Interview.Include("Questions").FirstOrDefault(x=>x.Uuid == interviewUuid);
                         if (interview != null)
                         {
+                            bool returnInterview = false;
                             if (interview.InvitationOnly)
                             {
                                 if(_context.InterviewInvitation.Any(x=>x.InterviewId == interview.Id && x.Email == email))
                                 {
-                                    await response.WriteAsJsonAsync(interview);
+                                    returnInterview = true;
                                 }
                                 else
                                 {
@@ -80,8 +83,43 @@ namespace InterviewAiFunction
                             }
                             else
                             {
+                                returnInterview = true;
+                            }
+                            if (returnInterview)
+                            {
+                                InterviewSession currentSession = _context.InterviewSession.FirstOrDefault(x => x.SessionUser == email && x.Status == "active" && x.InterviewId == interview.Id);
+                                if (currentSession == null)
+                                {
+                                    currentSession = new InterviewSession
+                                    {
+                                        InterviewId = interview.Id,
+                                        SessionUser = email,
+                                        Status = "active",
+                                        CreatedAt = DateTime.Now,
+                                    };
+                                    _context.InterviewSession.Add(currentSession);
+                                    await _context.SaveChangesAsync();
+
+                                }
+                                await response.WriteAsJsonAsync(new
+                                {
+                                    interview = new
+                                    {
+                                        interview.Id,
+                                        interview.Description,
+                                        interview.Title,
+                                        interview.Prompt,
+                                        interview.Status,
+                                        interview.Questions
+                                    },
+                                    session = currentSession
+                                });
+                            }
+                            else
+                            {
                                 response = req.CreateResponse(HttpStatusCode.Unauthorized);
                             }
+
                         }
                         else
                         {
