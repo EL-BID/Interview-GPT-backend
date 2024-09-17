@@ -29,7 +29,7 @@ namespace InterviewAiFunction
             _logger = loggerFactory.CreateLogger<PublicInterviewResultApi>();
         }
 
-        [Function("InterviewResults")]
+        [Function("InterviewResultsApi")]
         public async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "results")] HttpRequestData req)
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
@@ -37,30 +37,35 @@ namespace InterviewAiFunction
             DatabaseCommons dbCommons = new DatabaseCommons(_context);
             var email = req.Identities.First().Name;
             string interviewIdParam = req.Query["InterviewId"];
+            string sessionIdParam = req.Query["SessionId"];
+            string isAdminParam = req.Query["Admin"];
             try
             {
                 int interviewId = int.Parse(interviewIdParam);
-                if (dbCommons.IsValidAdminUserForInterview(interviewId, email))
+                int sessionId = int.Parse(sessionIdParam);
+                bool adminRights = false;
+
+                if(isAdminParam!=null && isAdminParam == "true" && dbCommons.IsValidAdminUserForInterview(interviewId, email))
                 {
-                    var responses = _context.InterviewResult
-                        //.Join(
-                        //    _context.InterviewInvitation, ir => ir.InterviewInvitationId, ii => ii.Id,
-                        //    (ir, ii) => new
-                        //    {
-                        //        ir.Id,
-                        //        ir.InterviewInvitationId,
-                        //        ir.ResultAi,
-                        //        ir.ResultUser,
-                        //        ir.CreatedAt,
-                        //        ir.UpdatedAt,
-                        //        ii.InterviewId
-                        //    }
-                        //)
-                        .Where(
-                            x => x.SessionId == interviewId
-                        ).ToList();
-                    await response.WriteAsJsonAsync(responses);
+                    adminRights = true;
                 }
+                var responses = _context.InterviewResult
+                        .Join(
+                            _context.InterviewSession, ir => ir.SessionId, iss => iss.Id, (ir, iss) => new
+                            {
+                                ir.Id,
+                                ir.SessionId,
+                                ir.ResultAi,
+                                ir.CreatedAt,
+                                ir.UpdatedAt,
+                                iss.InterviewId,
+                                iss.SessionUser
+                            }
+                        )
+                        .Where(
+                            x => x.InterviewId == interviewId && (!adminRights ? x.SessionUser == email : true) && (sessionId != null ? x.SessionId == sessionId : true)
+                        ).ToList();
+                await response.WriteAsJsonAsync(responses);
             }
             catch (Exception ex)
             {

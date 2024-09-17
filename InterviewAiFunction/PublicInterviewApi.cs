@@ -35,7 +35,6 @@ namespace InterviewAiFunction
             var invitationCode = req.Query["InvitationCode"];
 
             InterviewInvitation invitation = _context.InterviewInvitation.FirstOrDefault(x=>x.InvitationCode== invitationCode);
-            //TODO: investigate why Invitations are eager loading.
             Interview interview = _context.Interview.Include("Questions").FirstOrDefault(x => x.Id == invitation.InterviewId);
             if (interview != null)
             {
@@ -54,7 +53,15 @@ namespace InterviewAiFunction
 
                 }
                 await response.WriteAsJsonAsync(new {
-                    interview = interview,
+                    interview = new
+                    {
+                        interview.Id,
+                        interview.Description,                        
+                        interview.Title,
+                        interview.Prompt,
+                        interview.Status,
+                        interview.Questions
+                    },
                     session = currentSession
                 });
             }

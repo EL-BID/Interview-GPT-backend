@@ -1,0 +1,12 @@
+{
+  "dependencies": {
+    "storage1": {
+      "serviceConnectorResourceId": "/subscriptions/[parameters('subscriptionId')]/resourceGroups/[parameters('resourceGroupName')]/providers/Microsoft.Web/sites/fa-np-tl-interviewai-staging/providers/Microsoft.ServiceLinker/linkers/AzureWebJobsStorage_9FBDE6E36F, /subscriptions/904cfefb-e801-4fce-8977-bbc63b6117f8/resourceGroups/rg-np-tl-interview-ai/providers/Microsoft.Web/sites/fa-np-tl-interviewai-staging/providers/Microsoft.ServiceLinker/linkers/AzureWebJobsStorage_0917A50EEE",
+      "secretStore": "AzureAppSettings",
+      "resourceId": "/subscriptions/[parameters('subscriptionId')]/resourceGroups/[parameters('resourceGroupName')]/providers/Microsoft.Storage/storageAccounts/sanptlinterviewai",
+      "type": "storage.azure",
+      "connectionId": "AzureWebJobsStorage",
+      "dynamicId": null
+    }
+  }
+}

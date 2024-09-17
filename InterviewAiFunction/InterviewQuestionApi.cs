@@ -100,8 +100,6 @@ namespace InterviewAiFunction
                                     await _context.SaveChangesAsync();
                                     await response.WriteAsJsonAsync(question);
                                 }
-
-
                             }
                         }
 

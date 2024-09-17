@@ -62,7 +62,9 @@ namespace InterviewAiFunction
                                 Model = interview.Model,
                                 Prompt = interview.Prompt,
                                 Uuid = System.Guid.NewGuid().ToString(),
-                                Status = "inactive"
+                                Status = "inactive",
+                                InvitationOnly = interview.InvitationOnly,
+                                AuthOnly = interview.AuthOnly,
                             };
                             _context.Interview.Add(interviewCopy);
                             InterviewQuestion interviewQuestionCopy;

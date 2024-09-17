@@ -18,7 +18,7 @@ namespace InterviewAiFunction
 
         public PublicInterviewResponseApi(ILoggerFactory loggerFactory)
         {
-            _logger = loggerFactory.CreateLogger<InterviewQuestionApi>(); ;
+            _logger = loggerFactory.CreateLogger<PublicInterviewResponseApi>(); ;
         }
 
         public PublicInterviewResponseApi(InterviewContext context, ILoggerFactory loggerFactory)

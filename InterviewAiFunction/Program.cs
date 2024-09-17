@@ -21,7 +21,7 @@ var host = new HostBuilder()
         services.ConfigureFunctionsApplicationInsights();
         services.AddMvcCore().AddNewtonsoftJson(options =>
             options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
-        services.AddDbContext<InterviewContext>(options=>options.UseSqlServer(sqlConnection));
+        services.AddDbContext<InterviewContext>(options=>options.UseSqlServer(sqlConnection), ServiceLifetime.Transient);
         services.AddFunctionsAuthentication(JwtBearerDefaults.AuthenticationScheme)
         //https://gist.github.com/bachoang/90b646e2fedb0a446522d5e0076dddf7#file-startup-cs-L30
         .AddJwtFunctionsBearer(options =>

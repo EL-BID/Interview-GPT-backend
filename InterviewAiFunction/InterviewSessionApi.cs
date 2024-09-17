@@ -1,3 +1,4 @@
+using DarkLoop.Azure.Functions.Authorization;
 using InterviewAiFunction.Serializers;
 using InterviewAiFunction.Utils;
 using Microsoft.AspNetCore.Http;
@@ -10,39 +11,48 @@ using System.Text.Json;
 
 namespace InterviewAiFunction
 {
-    public class PublicInterviewSessionApi
+    [FunctionAuthorize]
+    public class InterviewSessionApi
     {
         private readonly ILogger _logger;
         private readonly InterviewContext _context;
 
-        public PublicInterviewSessionApi(ILoggerFactory loggerFactory)
+        public InterviewSessionApi(ILoggerFactory loggerFactory)
         {
-            _logger = loggerFactory.CreateLogger<PublicInterviewSessionApi>();
+            _logger = loggerFactory.CreateLogger<InterviewSessionApi>();
         }
 
-        public PublicInterviewSessionApi(InterviewContext context, ILoggerFactory loggerFactory)
+        public InterviewSessionApi(InterviewContext context, ILoggerFactory loggerFactory)
         {
             _context = context;
-            _logger = loggerFactory.CreateLogger<PublicInterviewSessionApi>();
+            _logger = loggerFactory.CreateLogger<InterviewSessionApi>();
         }
 
-        [Function("PublicInterviewSessionApi")]
-        public async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "put", "delete", Route = "public/session")] HttpRequestData req)
+        [Function("InterviewSessionApi")]
+        public async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "put", "delete", Route = "session")] HttpRequestData req)
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
             var response = req.CreateResponse(HttpStatusCode.OK);
             DatabaseCommons dbCommons = new DatabaseCommons(_context);
+            var email = req.Identities.First().Name;
             if (req.Method == "GET")
             {
                 try
                 {
-                    string invitationCode = req.Query["InvitationCode"];                    
+                    
+                    int sessionId = int.Parse(req.Query["Id"]);
                     string interviewUuid = req.Query["InterviewUuid"]; //gets all the sessions for an interview.
-                    InterviewInvitation invitation = _context.InterviewInvitation.FirstOrDefault(i => i.InvitationCode == invitationCode);
-                    if (req.Query["Id"] != null)
+                    string isAdminParam = req.Query["Admin"];
+                    bool adminRights = false;
+                    if (isAdminParam != null && isAdminParam == "true" && dbCommons.IsValidAdminUserForInterviewUuid(interviewUuid, email))
                     {
-                        int sessionId = int.Parse(req.Query["Id"]);
-                        if (dbCommons.IsValidInvitationForSession(invitation, sessionId))
+                        adminRights = true;
+                    }
+                    // TODO: add option for admin where it gets sessions unfiltered by user
+
+                    if (sessionId != null)
+                    {
+                        if (dbCommons.IsValidUserForSession(sessionId, email) || adminRights)
                         {
                             var session = _context.InterviewSession.FirstOrDefault(x => x.Id == sessionId);
                             await response.WriteAsJsonAsync(session);
@@ -51,23 +61,26 @@ namespace InterviewAiFunction
                         {
                             response = req.CreateResponse(HttpStatusCode.Unauthorized);
                         }
-
                     }
                     else
                     {
-                        if (dbCommons.IsValidInvitationForInterview(invitation, interviewUuid))
+                        // get all the sessions for the use
+                        if (dbCommons.IsValidUserForInterviewUuid(interviewUuid, email) || adminRights)
                         {
                             var interview = _context.Interview.FirstOrDefault(x => x.Uuid == interviewUuid);
-                            var sessions = _context.InterviewSession.Where(x => x.InterviewId == interview.Id).ToList();
+                            var sessions = _context.InterviewSession.Where(x => x.InterviewId == interview.Id && (adminRights? true: x.SessionUser==email)).ToList();
                             await response.WriteAsJsonAsync(sessions);
+                        }
+                        else
+                        {
+                            response = req.CreateResponse(HttpStatusCode.NotFound);
                         }
                     }
                 }
                 catch (Exception ex)
                 {
                     response = req.CreateResponse(HttpStatusCode.BadRequest);
-                }
-                
+                }                
             }
             else
             {
@@ -76,14 +89,13 @@ namespace InterviewAiFunction
                 {
                     InterviewSessionSerializer sessionSerializer =  JsonSerializer.Deserialize<InterviewSessionSerializer>(requestBody);
                     if(sessionSerializer != null)
-                    {
-                        InterviewInvitation invitation = _context.InterviewInvitation.FirstOrDefault(x=>x.InvitationCode==sessionSerializer.InvitationCode);
+                    {                        
                         if (req.Method == "PUT")
                         {
                             if(sessionSerializer.Id != null)
                             {
                                 InterviewSession session = _context.InterviewSession.Find(sessionSerializer.Id);
-                                if(session!=null && dbCommons.IsValidInvitationForSession(invitation, session.Id))
+                                if(session!=null && dbCommons.IsValidUserForSession(session.Id, email))
                                 {
                                     session.Title = sessionSerializer.Title ?? session.Title;
                                     session.Status = sessionSerializer.Status ?? session.Status;
@@ -97,12 +109,12 @@ namespace InterviewAiFunction
                             else
                             {
                                 Interview interview = _context.Interview.Find(sessionSerializer.InterviewId);
-                                if(dbCommons.IsValidInvitationForInterview(invitation, interview.Uuid))
+                                if (dbCommons.IsValidUserForInterview(interview.Id, email))
                                 {
                                     InterviewSession session = new InterviewSession
                                     {
                                         Title = sessionSerializer.Title ?? null,
-                                        SessionUser = invitation.Email,
+                                        SessionUser = email,
                                         CreatedAt = DateTime.Now,
                                         Result = sessionSerializer.Result ?? null,
                                         Status = "active"
@@ -116,7 +128,7 @@ namespace InterviewAiFunction
                         else if (req.Method == "DELETE")
                         {
                             InterviewSession session = _context.InterviewSession.Find(sessionSerializer.Id);
-                            if(session != null && dbCommons.IsValidInvitationForSession(invitation, session.Id))
+                            if(session != null && dbCommons.IsValidUserForSession(session.Id, email))
                             {
                                 _context.InterviewSession.Remove(session);
                                 await _context.SaveChangesAsync();

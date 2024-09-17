@@ -17,6 +17,8 @@ namespace InterviewAiFunction.Serializers
         public string? Status { get; set; }
         public DateTime? CreatedAt { get; set; }
         public DateTime? CreatedBy { get; set; }
+        public bool? AuthOnly {  get; set; }
+        public bool? InvitationOnly { get; set; }
         public List<InterviewQuestionSerializer>? Questions { get; set; }
         
     }

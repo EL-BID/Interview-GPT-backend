@@ -36,10 +36,16 @@ namespace InterviewAiFunction.Utils
             return _context.Interview.Any(x => x.CreatedBy == email && x.Id == interviewId);
         }
 
+        public bool IsValidAdminUserForInterviewUuid(string uuuid, string email)
+        {
+            return _context.Interview.Any(x=>x.CreatedBy==email && x.Uuid==uuuid);
+        }
+
         public bool IsUserInvitation(InterviewInvitation invitation, string userEmail)
         {
             return _context.Interview.Any(x=>x.Id == invitation.InterviewId && x.CreatedBy == userEmail.ToLower());
         }
+        
 
         public bool IsValidInvitationForSession(InterviewInvitation invitation, int sessionId)
         {
@@ -48,7 +54,16 @@ namespace InterviewAiFunction.Utils
 
         public bool IsValidInvitationForResponse(InterviewInvitation invitation, int responseId)
         {
-            return _context.InterviewResponse.Any(x => x.Id == responseId && IsValidInvitationForSession(invitation, x.SessionId));
+            InterviewResponse response = _context.InterviewResponse.FirstOrDefault(x => x.Id == responseId);
+            if (response == null)
+            {
+                return false;
+            }
+            else
+            {
+                return IsValidInvitationForSession(invitation, response.SessionId);
+            }
+            
         }
 
         public bool IsValidInvitationForResult(InterviewInvitation invitation, int resultId)
@@ -73,6 +88,48 @@ namespace InterviewAiFunction.Utils
                 return false;
             }
         }
+
+        public bool IsValidUserForSession(int sessionId, string email)
+        {
+            return _context.InterviewSession.Any(x => x.Id == sessionId && x.SessionUser == email);
+        }
+
+        public bool IsValidUserForResult(InterviewResult result, string email)
+        {
+            return _context.InterviewSession.Any(x=>x.Id==result.SessionId && x.SessionUser == email);
+        }
+
+        public bool IsValidUserForInterview(int interviewId, string email)
+        {
+            return _context.InterviewSession.Any(x=>x.InterviewId==interviewId && x.SessionUser==email);
+        }
+
+        public bool IsValidUserForResponse(int responseId, string email)
+        {
+            InterviewResponse response = _context.InterviewResponse.FirstOrDefault(x => x.Id == responseId);
+            if (response != null)
+            {
+                return _context.InterviewSession.Any(x => x.SessionUser == email && x.Id == response.SessionId);
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        public bool IsValidUserForInterviewUuid(string uuid, string email)
+        {
+            Interview interview = _context.Interview.FirstOrDefault(x => x.Uuid == uuid);
+            if(interview == null)
+            {
+                return false;
+            }
+            else
+            {
+                return _context.InterviewSession.Any(x=>x.InterviewId==interview.Id && x.SessionUser== email);
+            }
+        }
+
 
         public HttpResponseData ProcessDbException(HttpRequestData req, Exception ex)
         {

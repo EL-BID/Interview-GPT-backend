@@ -53,6 +53,8 @@ namespace InterviewAiFunction
                             i.Model,
                             i.Uuid,
                             i.Status,
+                            i.AuthOnly,
+                            i.InvitationOnly,
                             Questions = _context.InterviewQuestion.Where(q=>q.InterviewId==i.Id).ToList(),
                             Invitations = _context.InterviewInvitation.Where(iv=>iv.InterviewId==i.Id).Include("Results").Include("Responses").ToList()
                         }

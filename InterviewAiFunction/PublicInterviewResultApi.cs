@@ -18,7 +18,7 @@ namespace InterviewAiFunction
 
         public PublicInterviewResultApi(ILoggerFactory loggerFactory)
         {
-            _logger = loggerFactory.CreateLogger<InterviewQuestionApi>();
+            _logger = loggerFactory.CreateLogger<PublicInterviewResultApi>();
         }
 
         public PublicInterviewResultApi(InterviewContext context, ILoggerFactory loggerFactory)
@@ -42,12 +42,22 @@ namespace InterviewAiFunction
                     // not validated as it's supposed to be a one-one relation between invitation and result (as of now)
                     string invitationCode = req.Query["InvitationCode"];
                     int sessionId = int.Parse(req.Query["SessionId"]);
-                    int resultId = req.Query["Id"]==null ? int.Parse(req.Query["Id"]) : -1;
+                    int resultId = req.Query["Id"]!=null ? int.Parse(req.Query["Id"]) : -1;
+                    string getAll = req.Query["All"];
                     InterviewInvitation invitation = _context.InterviewInvitation.FirstOrDefault(r=>r.InvitationCode== invitationCode);
                     if(invitation != null && dbCommons.IsValidInvitationForSession(invitation, sessionId))
                     {
-                        InterviewResult result = _context.InterviewResult.OrderByDescending(x=>x.CreatedAt).FirstOrDefault(x=>x.SessionId==sessionId && x.Id==(resultId!=-1 ?resultId:x.Id));
-                        await response.WriteAsJsonAsync(result);
+                        if (getAll!=null && getAll == "yes" && resultId==-1)
+                        {
+                            var results = _context.InterviewResult.Where(x => x.SessionId == sessionId).ToList();
+                            await response.WriteAsJsonAsync(results);
+                        }
+                        else
+                        {
+                            InterviewResult result = _context.InterviewResult.OrderByDescending(x => x.CreatedAt).FirstOrDefault(x => x.SessionId == sessionId && x.Id == (resultId != -1 ? resultId : x.Id));
+                            await response.WriteAsJsonAsync(result);
+                        }
+                        
                     }
                     else
                     {

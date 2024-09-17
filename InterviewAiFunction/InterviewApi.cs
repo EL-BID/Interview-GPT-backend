@@ -52,11 +52,42 @@ namespace InterviewAiFunction
             if (req.Method == "GET")
             {
                 var interviewUuid = req.Query["Uuid"];
+                var adminOption = req.Query["Admin"];
+
 
                 if(interviewUuid != null)
-                {                    
-                    Interview interview = _context.Interview.Include("Questions").Include("Invitations").Include("Invitations.Responses").Include("Invitations.Results").FirstOrDefault(x=> x.Uuid == interviewUuid && x.CreatedBy==email);
-                    await response.WriteAsJsonAsync(interview);
+                {
+                    if(adminOption != null && adminOption == "true")
+                    {
+                        Interview interview = _context.Interview.Include("Questions").Include("Invitations").Include("Invitations.Responses").Include("Invitations.Results").FirstOrDefault(x => x.Uuid == interviewUuid && x.CreatedBy == email);
+                        await response.WriteAsJsonAsync(interview);
+                    }
+                    else
+                    {
+                        Interview interview = _context.Interview.Include("Questions").FirstOrDefault(x=>x.Uuid == interviewUuid);
+                        if (interview != null)
+                        {
+                            if (interview.InvitationOnly)
+                            {
+                                if(_context.InterviewInvitation.Any(x=>x.InterviewId == interview.Id && x.Email == email))
+                                {
+                                    await response.WriteAsJsonAsync(interview);
+                                }
+                                else
+                                {
+                                    response = req.CreateResponse(HttpStatusCode.Unauthorized);
+                                }
+                            }
+                            else
+                            {
+                                response = req.CreateResponse(HttpStatusCode.Unauthorized);
+                            }
+                        }
+                        else
+                        {
+                            response = req.CreateResponse(HttpStatusCode.NotFound);
+                        }                        
+                    }
                 }
                 else
                 {
@@ -85,6 +116,8 @@ namespace InterviewAiFunction
                                     interview.Description = interviewSerializer?.Description ?? interview.Description;
                                     interview.Prompt = interviewSerializer?.Prompt ?? interview.Prompt;
                                     interview.Status = interviewSerializer?.Status ?? interview.Status;
+                                    interview.AuthOnly = interviewSerializer?.AuthOnly ?? interview.AuthOnly;
+                                    interview.InvitationOnly = interviewSerializer?.InvitationOnly ?? interview.InvitationOnly;
                                     _context.Interview.Update(interview);
                                     await _context.SaveChangesAsync();
                                     await response.WriteAsJsonAsync(interview);
@@ -107,7 +140,9 @@ namespace InterviewAiFunction
                                     Status = "inactive",
                                     Model = interviewSerializer.Model ?? null,
                                     Description = interviewSerializer.Description ?? null,
-                                    Prompt = interviewSerializer.Prompt ?? null
+                                    Prompt = interviewSerializer.Prompt ?? null,
+                                    AuthOnly = interviewSerializer.AuthOnly ?? false,
+                                    InvitationOnly = interviewSerializer.InvitationOnly ?? false,
                                 };
                                 _context.Interview.Add(interview);
                                 await _context.SaveChangesAsync();

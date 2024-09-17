@@ -43,6 +43,7 @@ namespace InterviewAiFunction
         public required string Uuid {  get; set; }
         public required string Status { get; set; }
         public bool AuthOnly { get; set; }
+        public bool InvitationOnly { get; set; }
         public virtual List<InterviewQuestion>? Questions { get; set; }
         public virtual List<InterviewInvitation>? Invitations { get; set; }
 
@@ -65,8 +66,6 @@ namespace InterviewAiFunction
         public string InvitationCode { get; set; }
         public string? InvitationStatus { get; set; }
         public DateTime CreatedAt { get; set; }
-        public virtual List<InterviewResult>? Results { get; set; }
-        public virtual List<InterviewResponse>? Responses { get; set; }
     }
 
     public class InterviewSession
