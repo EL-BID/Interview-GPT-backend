@@ -42,7 +42,6 @@ namespace InterviewAiFunction
             try
             {
                 int interviewId = int.Parse(interviewIdParam);
-                int sessionId = int.Parse(sessionIdParam);
                 bool adminRights = false;
 
                 if(isAdminParam!=null && isAdminParam == "true" && dbCommons.IsValidAdminUserForInterview(interviewId, email))
@@ -63,7 +62,7 @@ namespace InterviewAiFunction
                             }
                         )
                         .Where(
-                            x => x.InterviewId == interviewId && (!adminRights ? x.SessionUser == email : true) && (sessionId != null ? x.SessionId == sessionId : true)
+                            x => x.InterviewId == interviewId && (!adminRights ? x.SessionUser == email : true) && (sessionIdParam != null ? x.SessionId == int.Parse(sessionIdParam) : true)
                         ).ToList();
                 await response.WriteAsJsonAsync(responses);
             }

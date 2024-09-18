@@ -43,24 +43,42 @@ namespace InterviewAiFunction
             {
                 try
                 {
-                    // not validated as it's supposed to be a one-one relation between invitation and result (as of now)                    
-                    int sessionId = int.Parse(req.Query["SessionId"]);
-                    int resultId = req.Query["Id"]==null ? int.Parse(req.Query["Id"]) : -1;
-
-                    InterviewResult result = _context.InterviewResult.OrderByDescending(x => x.CreatedAt).FirstOrDefault(x => x.Id == resultId);
-                    if (result != null)
+                    // int sessionId = int.Parse(req.Query["SessionId"]);
+                    
+                    if (req.Query["SessionId"] != null)
                     {
-                        if(dbCommons.IsValidUserForResult(result, email)) {
-                            await response.WriteAsJsonAsync(result);
+                        int sessionId = int.Parse(req.Query["SessionId"]);
+                        if(dbCommons.IsValidUserForSession(sessionId, email))
+                        {
+                            var results = _context.InterviewResult.Where(x=>x.SessionId==sessionId).ToList();
+                            await response.WriteAsJsonAsync(results);
                         }
                         else
                         {
                             response = req.CreateResponse(HttpStatusCode.Unauthorized);
                         }
                     }
-                    else {
-                        response = req.CreateResponse(HttpStatusCode.NotFound);
-                    }                    
+                    else
+                    {
+                        int resultId = req.Query["Id"] == null ? int.Parse(req.Query["Id"]) : -1;
+                        InterviewResult result = _context.InterviewResult.OrderByDescending(x => x.CreatedAt).FirstOrDefault(x => x.Id == resultId);
+                        if (result != null)
+                        {
+                            if (dbCommons.IsValidUserForResult(result, email))
+                            {
+                                await response.WriteAsJsonAsync(result);
+                            }
+                            else
+                            {
+                                response = req.CreateResponse(HttpStatusCode.Unauthorized);
+                            }
+                        }
+                        else
+                        {
+                            response = req.CreateResponse(HttpStatusCode.NotFound);
+                        }
+                    }
+                                       
                 }catch(Exception ex)
                 {
                     response = req.CreateResponse(HttpStatusCode.BadRequest);

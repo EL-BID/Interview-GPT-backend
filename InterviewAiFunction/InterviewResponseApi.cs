@@ -39,8 +39,7 @@ namespace InterviewAiFunction
             if (req.Method== "GET")
             {
                 try
-                {
-                    
+                {                    
                     string interviewUuid = req.Query["InterviewUuid"]; //gets all the sessions for an interview.
                     string isAdminParam = req.Query["Admin"];                    
                     bool adminRights = false;
@@ -71,7 +70,6 @@ namespace InterviewAiFunction
                             Interview interview = _context.Interview.FirstOrDefault(x => x.Uuid == interviewUuid);
                             if (interview != null)
                             {
-                                int sessionId = int.Parse(req.Query["SessionId"]);
                                 // only one session
                                 var interviewResponses = _context.InterviewResponse.Join(_context.InterviewSession, ir => ir.SessionId, ses => ses.Id, (ir, ses) => new
                                 {
@@ -83,7 +81,7 @@ namespace InterviewAiFunction
                                     ir.CreatedAt,
                                     ir.UpdatedAt
                                 }
-                               ).Where(x => x.InterviewId == interview.Id && (sessionId!=null? x.SessionId==sessionId: true)).ToList();
+                               ).Where(x => x.InterviewId == interview.Id && (req.Query["SessionId"] != null? x.SessionId== int.Parse(req.Query["SessionId"]) : true)).ToList();
                                 await response.WriteAsJsonAsync(interviewResponses);
                             }
                             else
@@ -98,6 +96,7 @@ namespace InterviewAiFunction
                     }
                 }catch (Exception ex)
                 {
+                    _logger.LogError(ex.Message);
                     response = req.CreateResponse(HttpStatusCode.BadRequest);
                     await response.WriteStringAsync("Arguments error");
                 }
