@@ -17,5 +17,8 @@ namespace InterviewAiFunction.Serializers
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
         public string? InvitationCode { get; set; }
+        public int? UserRating { get; set; }
+        public string? CustomInstructions { get; set; }
+
     }
 }

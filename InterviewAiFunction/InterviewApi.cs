@@ -110,7 +110,11 @@ namespace InterviewAiFunction
                                         interview.Title,
                                         interview.Prompt,
                                         interview.Status,
-                                        interview.Questions
+                                        interview.Questions,
+                                        interview.WelcomeTitle,
+                                        interview.WelcomeMessage,
+                                        interview.CompletedTitle,
+                                        interview.CompletedMessage
                                     },
                                     session = currentSession
                                 });
@@ -156,6 +160,10 @@ namespace InterviewAiFunction
                                     interview.Status = interviewSerializer?.Status ?? interview.Status;
                                     interview.AuthOnly = interviewSerializer?.AuthOnly ?? interview.AuthOnly;
                                     interview.InvitationOnly = interviewSerializer?.InvitationOnly ?? interview.InvitationOnly;
+                                    interview.WelcomeTitle = interviewSerializer?.WelcomeTitle ?? interview.WelcomeTitle;
+                                    interview.WelcomeMessage = interviewSerializer?.WelcomeMessage ?? interview.WelcomeMessage;
+                                    interview.CompletedTitle = interviewSerializer?.CompletedTitle ?? interview.CompletedTitle;
+                                    interview.CompletedMessage = interviewSerializer?.CompletedMessage ?? interview.CompletedMessage;
                                     _context.Interview.Update(interview);
                                     await _context.SaveChangesAsync();
                                     await response.WriteAsJsonAsync(interview);
@@ -181,6 +189,10 @@ namespace InterviewAiFunction
                                     Prompt = interviewSerializer.Prompt ?? null,
                                     AuthOnly = interviewSerializer.AuthOnly ?? false,
                                     InvitationOnly = interviewSerializer.InvitationOnly ?? false,
+                                    WelcomeTitle = interviewSerializer.WelcomeTitle ?? null,
+                                    WelcomeMessage = interviewSerializer.WelcomeMessage ?? null,
+                                    CompletedTitle = interviewSerializer.CompletedTitle ?? null,
+                                    CompletedMessage = interviewSerializer.CompletedMessage ?? null
                                 };
                                 _context.Interview.Add(interview);
                                 await _context.SaveChangesAsync();

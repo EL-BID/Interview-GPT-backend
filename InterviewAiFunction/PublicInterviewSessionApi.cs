@@ -88,7 +88,9 @@ namespace InterviewAiFunction
                                     session.Title = sessionSerializer.Title ?? session.Title;
                                     session.Status = sessionSerializer.Status ?? session.Status;
                                     session.Result = sessionSerializer.Result ?? session.Result;
+                                    session.UserRating = sessionSerializer.UserRating ?? session.UserRating;
                                     session.UpdatedAt = DateTime.Now;
+                                    session.CustomInstructions = sessionSerializer.CustomInstructions ?? session.CustomInstructions;
                                     _context.InterviewSession.Update(session);
                                     await _context.SaveChangesAsync();
                                     await response.WriteAsJsonAsync(session);
@@ -105,7 +107,8 @@ namespace InterviewAiFunction
                                         SessionUser = invitation.Email,
                                         CreatedAt = DateTime.Now,
                                         Result = sessionSerializer.Result ?? null,
-                                        Status = "active"
+                                        Status = "active",
+                                        UserRating = sessionSerializer.UserRating ?? null
                                     };
                                     _context.InterviewSession.Add(session);
                                     await _context.SaveChangesAsync();

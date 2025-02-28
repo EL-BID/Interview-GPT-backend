@@ -60,7 +60,11 @@ namespace InterviewAiFunction
                         interview.Title,
                         interview.Prompt,
                         interview.Status,
-                        interview.Questions
+                        interview.Questions,
+                        interview.WelcomeTitle,
+                        interview.WelcomeMessage,
+                        interview.CompletedTitle,
+                        interview.CompletedMessage
                     },
                     session = currentSession
                 });

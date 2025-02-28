@@ -101,16 +101,19 @@ namespace InterviewAiFunction
                             {
                                 if (invitationSerializer.InterviewId != null && dbCommons.IsValidAdminUserForInterview((int)invitationSerializer.InterviewId, email))
                                 {
+                                    var invitationCode = this.RandomCode(4) + "-" + this.RandomCode(4) + "-" + this.RandomCode(4);
                                     InterviewInvitation invitation = new InterviewInvitation
                                     {
                                         InterviewId = (int)invitationSerializer.InterviewId,
                                         Email = invitationSerializer.Email,
                                         InvitationStatus = "pending",
                                         CreatedAt = DateTime.Now,
-                                        InvitationCode = this.RandomCode(4)+"-"+this.RandomCode(4)+"-"+this.RandomCode(4),
+                                        InvitationCode = invitationCode
                                     };
                                     _context.InterviewInvitation.Add(invitation);
                                     await _context.SaveChangesAsync();
+                                    var interviewUrl = Environment.GetEnvironmentVariable("BASE_URL") + "/" + invitationCode;
+                                    await EmailUtils.ExecuteMailgun(invitationSerializer.Email, "", email, interviewUrl);
                                     await response.WriteAsJsonAsync(invitation);
                                 }
                             }

@@ -20,6 +20,10 @@ namespace InterviewAiFunction.Serializers
         public bool? AuthOnly {  get; set; }
         public bool? InvitationOnly { get; set; }
         public List<InterviewQuestionSerializer>? Questions { get; set; }
+        public string? WelcomeTitle { get; set; }
+        public string? WelcomeMessage { get; set; }
+        public string? CompletedTitle { get; set; }
+        public string? CompletedMessage { get; set; }
         
     }
 }

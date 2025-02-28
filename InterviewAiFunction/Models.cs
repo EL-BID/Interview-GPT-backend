@@ -46,6 +46,10 @@ namespace InterviewAiFunction
         public bool InvitationOnly { get; set; }
         public virtual List<InterviewQuestion>? Questions { get; set; }
         public virtual List<InterviewInvitation>? Invitations { get; set; }
+        public string? WelcomeTitle { get; set; }
+        public string? WelcomeMessage { get; set; }
+        public string? CompletedTitle { get; set; }
+        public string? CompletedMessage { get; set; }
 
     }
 
@@ -78,8 +82,8 @@ namespace InterviewAiFunction
         public string Status { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
-
-
+        public int? UserRating { get; set; }
+        public string? CustomInstructions { get; set; }
     }
     public class InterviewResult
     {
