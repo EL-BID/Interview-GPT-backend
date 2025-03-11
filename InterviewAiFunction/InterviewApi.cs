@@ -61,7 +61,10 @@ namespace InterviewAiFunction
                     if(adminOption != null && adminOption == "true")
                     {
                         //Interview interview = _context.Interview.Include("Questions").Include("Invitations").Include("Invitations.Responses").Include("Invitations.Results").FirstOrDefault(x => x.Uuid == interviewUuid && x.CreatedBy == email);
-                        Interview interview = _context.Interview.Include("Questions").Include("Invitations").FirstOrDefault(x => x.Uuid == interviewUuid && x.CreatedBy == email);
+                        Interview interview = _context.Interview.Include("Questions").Include("Invitations").Include("Sessions").Include("Sessions.Responses").FirstOrDefault(x => x.Uuid == interviewUuid && x.CreatedBy == email);
+                        //var sessions = _context.InterviewSession.Include("Responses").Where(x=>x.InterviewId==interview.Id).ToList();
+
+
                         await response.WriteAsJsonAsync(interview);
                     }
                     else
@@ -183,7 +186,7 @@ namespace InterviewAiFunction
                                     Uuid = System.Guid.NewGuid().ToString(),
                                     CreatedAt = DateTime.Now,
                                     CreatedBy = email,
-                                    Status = "inactive",
+                                    Status = interviewSerializer.Status ?? "inactive",
                                     Model = interviewSerializer.Model ?? null,
                                     Description = interviewSerializer.Description ?? null,
                                     Prompt = interviewSerializer.Prompt ?? null,

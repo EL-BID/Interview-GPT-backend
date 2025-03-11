@@ -4,9 +4,12 @@ using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.EntityFrameworkCore.SqlServer;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Net;
+using System.Reflection.Metadata;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace InterviewAiFunction
@@ -29,6 +32,12 @@ namespace InterviewAiFunction
         public DbSet<InterviewResult> InterviewResult { get; set; }
         public DbSet<InterviewResponse> InterviewResponse { get; set; }
 
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            //base.OnModelCreating(modelBuilder);
+            modelBuilder.Entity<InterviewSession>().HasMany(t => t.Responses).WithOne(t=>t.Session).HasForeignKey("SessionId");
+        }
+
     }
 
     public class Interview
@@ -46,6 +55,7 @@ namespace InterviewAiFunction
         public bool InvitationOnly { get; set; }
         public virtual List<InterviewQuestion>? Questions { get; set; }
         public virtual List<InterviewInvitation>? Invitations { get; set; }
+        public virtual List<InterviewSession> Sessions { get; set; }
         public string? WelcomeTitle { get; set; }
         public string? WelcomeMessage { get; set; }
         public string? CompletedTitle { get; set; }
@@ -70,6 +80,7 @@ namespace InterviewAiFunction
         public string InvitationCode { get; set; }
         public string? InvitationStatus { get; set; }
         public DateTime CreatedAt { get; set; }
+       
     }
 
     public class InterviewSession
@@ -84,6 +95,8 @@ namespace InterviewAiFunction
         public DateTime? UpdatedAt { get; set; }
         public int? UserRating { get; set; }
         public string? CustomInstructions { get; set; }
+        public virtual List<InterviewResponse> Responses { get; set; }
+        //public List<InterviewResponse> Responses { get; set; }
     }
     public class InterviewResult
     {
@@ -98,7 +111,10 @@ namespace InterviewAiFunction
     public class InterviewResponse
     {
         public int Id { get; set; }
-        public int SessionId { get; set; }
+        [ForeignKey("SessionId")]
+        public int SessionId { get;set;}
+        [JsonIgnore]
+        public virtual InterviewSession Session { get; set; }
         public int InterviewQuestionId { get; set; }
         public string ResponseText { get; set; }
         public DateTime CreatedAt { get; set; }
