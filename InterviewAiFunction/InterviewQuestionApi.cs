@@ -76,6 +76,7 @@ namespace InterviewAiFunction
                                     question.QuestionOrder = questionSerializer.QuestionOrder ?? question.QuestionOrder;
                                     question.QuestionText = questionSerializer.QuestionText ?? question.QuestionText;
                                     question.IsRequired = questionSerializer.IsRequired ?? question.IsRequired;
+                                    question.Context = questionSerializer.Context ?? question.Context;
                                     _context.InterviewQuestion.Update(question);
                                     await _context.SaveChangesAsync();
                                     await response.WriteAsJsonAsync(question);
@@ -94,7 +95,8 @@ namespace InterviewAiFunction
                                         QuestionText = questionSerializer.QuestionText,
                                         QuestionOrder = questionSerializer.QuestionOrder ?? 0,
                                         IsRequired = questionSerializer.IsRequired ?? true,
-                                        InterviewId = (int)questionSerializer.InterviewId
+                                        InterviewId = (int)questionSerializer.InterviewId,
+                                        Context = questionSerializer.Context
                                     };
                                     _context.InterviewQuestion.Add(question);
                                     await _context.SaveChangesAsync();

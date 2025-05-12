@@ -31,6 +31,7 @@ namespace InterviewAiFunction
         public DbSet<InterviewInvitation> InterviewInvitation { get; set; }
         public DbSet<InterviewResult> InterviewResult { get; set; }
         public DbSet<InterviewResponse> InterviewResponse { get; set; }
+        public DbSet<InterviewTag> InterviewTag { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -61,6 +62,11 @@ namespace InterviewAiFunction
         public string? CompletedTitle { get; set; }
         public string? CompletedMessage { get; set; }
 
+        public virtual List<InterviewTag> Tags { get; set; }
+
+        public bool IsDeleted { get; set; }
+        public bool ChatMode { get; set; } 
+
     }
 
     public class InterviewQuestion
@@ -70,6 +76,7 @@ namespace InterviewAiFunction
         public string? QuestionText { get; set; }
         public int? QuestionOrder { get; set; }
         public bool? IsRequired { get; set; }
+        public string? Context { get; set; }
     }
 
     public class InterviewInvitation
@@ -119,5 +126,12 @@ namespace InterviewAiFunction
         public string ResponseText { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
+    }
+
+    public class InterviewTag
+    {
+        public int Id { get; set; }
+        public int InterviewId { get; set; }
+        public string Label { get; set; }
     }
 }

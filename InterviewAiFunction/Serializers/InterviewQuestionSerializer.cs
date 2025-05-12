@@ -12,6 +12,7 @@ namespace InterviewAiFunction.Serializers
         public int? InterviewId { get; set; }
         public string? QuestionText { get; set; }
         public int? QuestionOrder { get; set; }
-        public bool? IsRequired { get; set; } 
+        public bool? IsRequired { get; set; }
+        public string? Context { get; set; }
     }
 }

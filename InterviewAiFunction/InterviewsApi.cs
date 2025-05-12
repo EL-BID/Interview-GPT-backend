@@ -41,7 +41,7 @@ namespace InterviewAiFunction
                 var email = req.Identities.First().Name.ToLower();
                 if (includeAll != null && includeAll == "yes")
                 {
-                    var interviews = _context.Interview.Where(i => i.CreatedBy.ToLower() == email.ToLower()).Select(
+                    var interviews = _context.Interview.Where(i => i.CreatedBy.ToLower() == email.ToLower() && !i.IsDeleted).Select(
                         i => new
                         {
                             i.Id,
@@ -59,8 +59,10 @@ namespace InterviewAiFunction
                             i.WelcomeMessage,
                             i.CompletedTitle,
                             i.CompletedMessage,
+                            i.ChatMode,
                             Questions = _context.InterviewQuestion.Where(q=>q.InterviewId==i.Id).ToList(),
-                            Invitations = _context.InterviewInvitation.Where(iv=>iv.InterviewId==i.Id).ToList()
+                            Invitations = _context.InterviewInvitation.Where(iv=>iv.InterviewId==i.Id).ToList(),
+                            Tags = _context.InterviewTag.Where(t=>t.InterviewId==i.Id).ToList(),
                         }
                     ).ToList();
                     await response.WriteAsJsonAsync(interviews);

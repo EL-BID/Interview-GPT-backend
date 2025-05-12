@@ -61,7 +61,7 @@ namespace InterviewAiFunction
                     if(adminOption != null && adminOption == "true")
                     {
                         //Interview interview = _context.Interview.Include("Questions").Include("Invitations").Include("Invitations.Responses").Include("Invitations.Results").FirstOrDefault(x => x.Uuid == interviewUuid && x.CreatedBy == email);
-                        Interview interview = _context.Interview.Include("Questions").Include("Invitations").Include("Sessions").Include("Sessions.Responses").FirstOrDefault(x => x.Uuid == interviewUuid && x.CreatedBy == email);
+                        Interview interview = _context.Interview.Include("Questions").Include("Invitations").Include("Sessions").Include("Tags").Include("Sessions.Responses").FirstOrDefault(x => x.Uuid == interviewUuid && x.CreatedBy == email && !x.IsDeleted);
                         //var sessions = _context.InterviewSession.Include("Responses").Where(x=>x.InterviewId==interview.Id).ToList();
 
 
@@ -69,7 +69,7 @@ namespace InterviewAiFunction
                     }
                     else
                     {
-                        Interview interview = _context.Interview.Include("Questions").FirstOrDefault(x=>x.Uuid == interviewUuid);
+                        Interview interview = _context.Interview.Include("Questions").Include("Tags").FirstOrDefault(x=>x.Uuid == interviewUuid && !x.IsDeleted);
                         if (interview != null)
                         {
                             bool returnInterview = false;
@@ -117,7 +117,9 @@ namespace InterviewAiFunction
                                         interview.WelcomeTitle,
                                         interview.WelcomeMessage,
                                         interview.CompletedTitle,
-                                        interview.CompletedMessage
+                                        interview.CompletedMessage,
+                                        interview.Tags,
+                                        interview.ChatMode
                                     },
                                     session = currentSession
                                 });
@@ -167,6 +169,8 @@ namespace InterviewAiFunction
                                     interview.WelcomeMessage = interviewSerializer?.WelcomeMessage ?? interview.WelcomeMessage;
                                     interview.CompletedTitle = interviewSerializer?.CompletedTitle ?? interview.CompletedTitle;
                                     interview.CompletedMessage = interviewSerializer?.CompletedMessage ?? interview.CompletedMessage;
+                                    interview.IsDeleted = interviewSerializer.IsDeleted ?? interview.IsDeleted;
+                                    interview.ChatMode = interviewSerializer.ChatMode ?? interview.ChatMode;
                                     _context.Interview.Update(interview);
                                     await _context.SaveChangesAsync();
                                     await response.WriteAsJsonAsync(interview);
@@ -195,10 +199,25 @@ namespace InterviewAiFunction
                                     WelcomeTitle = interviewSerializer.WelcomeTitle ?? null,
                                     WelcomeMessage = interviewSerializer.WelcomeMessage ?? null,
                                     CompletedTitle = interviewSerializer.CompletedTitle ?? null,
-                                    CompletedMessage = interviewSerializer.CompletedMessage ?? null
+                                    CompletedMessage = interviewSerializer.CompletedMessage ?? null,
+                                    IsDeleted = false,
+                                    ChatMode = interviewSerializer.ChatMode ?? false,
                                 };
                                 _context.Interview.Add(interview);
                                 await _context.SaveChangesAsync();
+
+                                if (interviewSerializer.Tags != null)
+                                {
+                                    foreach(var tag in interviewSerializer.Tags)
+                                    {
+                                        _context.InterviewTag.Add(new InterviewTag
+                                        {
+                                            InterviewId = interview.Id,
+                                            Label = tag.Label
+                                        });
+                                        await _context.SaveChangesAsync();
+                                    }
+                                }
                                 await response.WriteAsJsonAsync(interview);
 
                             }
@@ -208,8 +227,14 @@ namespace InterviewAiFunction
                             Interview interview = _context.Interview.FirstOrDefault(x => x.Uuid == interviewSerializer.Uuid && x.CreatedBy.ToLower() == email);
                             if (interview != null)
                             {
+                                await _context.Database.BeginTransactionAsync();
+                                _context.InterviewQuestion.RemoveRange(_context.InterviewQuestion.Where(x => x.InterviewId == interview.Id));
+                                await _context.SaveChangesAsync();
+                                _context.InterviewTag.RemoveRange(_context.InterviewTag.Where(x => x.InterviewId == interview.Id));
+                                await _context.SaveChangesAsync();
                                 _context.Interview.Remove(interview);
                                 await _context.SaveChangesAsync();
+                                await _context.Database.CommitTransactionAsync();
                             }
                             else
                             {

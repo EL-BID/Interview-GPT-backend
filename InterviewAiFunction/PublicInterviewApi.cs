@@ -35,7 +35,7 @@ namespace InterviewAiFunction
             var invitationCode = req.Query["InvitationCode"];
 
             InterviewInvitation invitation = _context.InterviewInvitation.FirstOrDefault(x=>x.InvitationCode== invitationCode);
-            Interview interview = _context.Interview.Include("Questions").FirstOrDefault(x => x.Id == invitation.InterviewId);
+            Interview interview = _context.Interview.Include("Questions").Include("Tags").FirstOrDefault(x => x.Id == invitation.InterviewId && !x.IsDeleted);
             if (interview != null)
             {
                 InterviewSession currentSession = _context.InterviewSession.FirstOrDefault(x => x.SessionUser == invitation.Email && x.Status == "active" && x.InterviewId==invitation.InterviewId);
@@ -64,7 +64,9 @@ namespace InterviewAiFunction
                         interview.WelcomeTitle,
                         interview.WelcomeMessage,
                         interview.CompletedTitle,
-                        interview.CompletedMessage
+                        interview.CompletedMessage,
+                        interview.Tags,
+                        interview.ChatMode
                     },
                     session = currentSession
                 });

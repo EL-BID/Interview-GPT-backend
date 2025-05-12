@@ -24,6 +24,9 @@ namespace InterviewAiFunction.Serializers
         public string? WelcomeMessage { get; set; }
         public string? CompletedTitle { get; set; }
         public string? CompletedMessage { get; set; }
+        public List<InterviewTagSerializer>? Tags { get; set; }
+        public bool? IsDeleted { get; set; }
+        public bool? ChatMode { get; set; }
         
     }
 }
