@@ -112,7 +112,16 @@ namespace InterviewAiFunction
                                     };
                                     _context.InterviewInvitation.Add(invitation);
                                     await _context.SaveChangesAsync();
-                                    var interviewUrl = Environment.GetEnvironmentVariable("BASE_URL") + "/" + invitationCode;
+                                    Interview interview = _context.Interview.FirstOrDefault(x=>x.Id == invitation.InterviewId);
+                                    var interviewUrl = Environment.GetEnvironmentVariable("BASE_URL");
+                                    if (interview.AuthOnly)
+                                    {
+                                        interviewUrl = $"{interviewUrl}/{interview.Uuid}?invitationCode={invitationCode}";
+                                    }
+                                    else
+                                    {
+                                        interviewUrl = $"{interviewUrl}/{interview.Uuid}";
+                                    }
                                     await EmailUtils.ExecuteMailgun(invitationSerializer.Email, "", email, interviewUrl);
                                     await response.WriteAsJsonAsync(invitation);
                                 }
