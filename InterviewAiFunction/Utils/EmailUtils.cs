@@ -21,10 +21,10 @@ namespace InterviewAiFunction.Utils
         {
             var apiKey = Environment.GetEnvironmentVariable("MAIL_API_KEY");
             var client = new SendGridClient(apiKey);
-            var from = new EmailAddress("idbtechlab@gmail.com", "TechLab");
+            var from = new EmailAddress(Environment.GetEnvironmentVariable("MAIL_API_KEY"));
             var to = new EmailAddress(toEmail, toName);
 
-            var templateId = "d-c6154222e301443f9480769f6cd89989";
+            var templateId = "send-grid-template-id";
             var dynamicTemplateData = new
             {
                 user = fromName,
@@ -53,7 +53,7 @@ namespace InterviewAiFunction.Utils
             var client = new RestClient(options);
             var request = new RestRequest("/mail.sndbx.run/messages", Method.Post);
             request.AlwaysMultipartFormData = true;
-            request.AddParameter("from", "TechLab Sandbox <postmaster@mail.sndbx.run>");
+            request.AddParameter("from", Environment.GetEnvironmentVariable("MAIL_FROM"));
             request.AddParameter("to", toEmail);
             request.AddParameter("subject", "You have an Interview GPT Invitation");
             request.AddParameter("template", "interview gpt template");
@@ -68,6 +68,19 @@ namespace InterviewAiFunction.Utils
             {
 
                 Console.WriteLine("Error sending the email: " + response.Content);
+            }
+        }
+
+        public static async Task SendMail(string toEmail, string toName, string fromName, string url)
+        {
+            var service = Environment.GetEnvironmentVariable("MAIL_SERVICE") ?? "mailgun";
+            if(service == "mailgun")
+            {
+                await ExecuteMailgun(toEmail, toName, fromName, url);
+            }
+            else
+            {
+                await ExecuteSendGrid(toEmail, toName, fromName, url);
             }
         }
     }

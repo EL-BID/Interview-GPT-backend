@@ -122,7 +122,7 @@ namespace InterviewAiFunction
                                     {
                                         interviewUrl = $"{interviewUrl}/{interview.Uuid}";
                                     }
-                                    await EmailUtils.ExecuteMailgun(invitationSerializer.Email, "", email, interviewUrl);
+                                    await EmailUtils.SendMail(invitationSerializer.Email, "", email, interviewUrl);
                                     await response.WriteAsJsonAsync(invitation);
                                 }
                             }

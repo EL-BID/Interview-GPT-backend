@@ -21,8 +21,7 @@ namespace InterviewAiFunction
         public async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = "email-test")] HttpRequestData req)
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
-            await EmailUtils.ExecuteMailgun("jdaniel.zarate@gmail.com", "Jose Daniel", "Jose Daniel", "https://www.google.com");
-            await EmailUtils.ExecuteMailgun("joseza@iadb.org", "Jose Daniel", "Jose Daniel", "https://www.google.com");
+            await EmailUtils.SendMail("mailTo@domain.com", "To Name", "From Name", "some-url");
             var response = req.CreateResponse(HttpStatusCode.OK);
             return response;
         }
