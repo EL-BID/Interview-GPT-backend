@@ -55,7 +55,7 @@ Para poder ejecutar el código en un ambiente local es preciso contar con un arc
   },
   "ConnectionStrings": {
     "SQLConnectionString": {
-      "ConnectionString": ",
+      "ConnectionString": "",
       "ProviderName": ""
     }
   }
