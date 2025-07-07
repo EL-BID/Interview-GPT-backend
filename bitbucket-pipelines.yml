@@ -1,0 +1,28 @@
+# .bitbucket/pipelines.yml
+# Sincroniza la rama `master` de Bitbucket → GitHub (solo en esa dirección)
+image: atlassian/default-image:3     # contenedor base de Bitbucket
+pipelines:
+  branches:
+    master:
+      - step:
+          name: Sync → GitHub (master)
+          image: alpine/git:latest   # trae git y git-lfs
+          clone:
+            enabled: false           # desactivamos el clon automático
+          script:
+            # 1) Entorno y dependencias
+            - apk add --no-cache openssh-client git-lfs
+            - git lfs install --skip-smudge
+            - ssh-keyscan github.com >> ~/.ssh/known_hosts
+            - ssh-keyscan bitbucket.org >> ~/.ssh/known_hosts
+            # 2) Clonar la rama 'master' desde Bitbucket (historial completo)
+            - git clone --single-branch --branch master \
+                git@bitbucket.org:iadbtechlab/interview-gpt-backend.git repo
+            - cd repo
+            # 3) (Opcional) Migrar archivos grandes a Git LFS
+            # - git lfs migrate import --include="*.mp4,*.zip,*.png"
+            # 4) Empujar la rama 'master' al repo privado de GitHub
+            - git remote add github git@github.com:EL-BID/Interview-GPT-backend.git
+            - git push --force github master:master
+            # Para espejar TODAS las ramas/tags, reemplaza la línea anterior por:
+            # - git push --mirror github
