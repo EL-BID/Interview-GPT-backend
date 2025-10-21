@@ -2,9 +2,13 @@
 
 Interview GPT es un aplicativo que te permite usar modelos de inteligencia Artificial para asistir en la captura de información a través de entrevistas. 
 
-El proyecto está dividido en tres repositorios: backend (API), frontend y un AI module.
+**Interview GPT** es un proyecto compuesto por tres repositorios:
+ 
+- **Backend**: [EL-BID/Interview-GPT-backend](https://github.com/EL-BID/Interview-GPT-backend)
+- **AI API**: [EL-BID/Interview-GPT-AI-API](https://github.com/EL-BID/Interview-GPT-AI-API)
+- **Interfaz Web (UI)**: [EL-BID/Interview-GPT-UI](https://github.com/EL-BID/Interview-GPT-UI)
 
-El API se utiliza para gestionar la información que se almacena en una base de datos SQL. Está construido en C# en una arquitectura de microservicios haciendo uso de la plataforma Azure Functions.
+El Backend se utiliza para gestionar la información que se almacena en una base de datos SQL. Está construido en C# en una arquitectura de microservicios haciendo uso de la plataforma Azure Functions.
 
 ## Tecnologías Utilizadas
 
