@@ -1,0 +1,57 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "sqlServerName": {
+            "value": ""
+        },
+        "vulnerabilityAssessments_Default_storageContainerPath": {
+            "type": "SecureString"
+        },
+        "sites_fa_np_tl_interviewai_name": {
+            "value": ""
+        },
+        "servers_sqls_np_tl_interviewai_name": {
+            "value": ""
+        },
+        "staticSites_wa_np_tl_interviewai_name": {
+            "value": ""
+        },
+        "components_fa_np_tl_interviewai_name": {
+            "value": ""
+        },
+        "serverfarms_asp_wa_np_tl_interviewai_name": {
+            "value": ""
+        },
+        "sites_fa_np_tl_interview_ai_services_name": {
+            "value": ""
+        },
+        "components_fa_tl_np_ai_interview_name": {
+            "value": ""
+        },
+        "storageAccounts_sanptlinterviewai_name": {
+            "value": ""
+        },
+        "serverfarms_ASP_rgnptlinterviewai_b901_name": {
+            "value": ""
+        },
+        "serverfarms_ASP_rgnptlinterviewai_beeb_name": {
+            "value": ""
+        },
+        "components_fa_np_tl_interview_ai_services_name": {
+            "value": ""
+        },
+        "flexibleServers_ps_np_tl_interviewai_name": {
+            "value": ""
+        },
+        "AADAdminLogin": {
+            "value": ""
+        },
+        "AADAdminObjectID": {
+            "value": ""
+        },
+        "AzureLocation": {
+            "value":""
+        }
+    }
+}
