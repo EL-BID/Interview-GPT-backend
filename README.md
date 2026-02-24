@@ -27,7 +27,7 @@ Adicionalmente, este proyecto incluye archivos de Infraestructura como Código e
 
 El proyecto fue adaptado para usar una base de datos en MS SQL Server. Se utiliza la librería Entity Framework para la interacción con la base de datos. Sin embargo, no se ha configurado un proceso para hacer migraciones automáticas para los esquemas de datos.
 
-Será requerido crear una base de datos y ejecutar el script de creación de base de datos ubicado en el archivo Database.sql de este repositorio.
+Será requerido crear una base de datos y ejecutar el script de creación de base de datos ubicado en el archivo database/db.sql de este repositorio.
 
 ### Autenticación
 
