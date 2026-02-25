@@ -14,7 +14,7 @@
   },
   "ConnectionStrings": {
     "SQLConnectionString": {
-      "ConnectionString": "CfDJ8FQagsUh2NRHgilRs7d04O38M7/WZyeIOS9rQ/kzBb2/GhWwuVxg8weSyYM+Cq6kPkXJ6FIOOMiGKvwqjn7h6vwa6OPDLYXMTipLMJzVQyBg5s3XR+PQzN9YgDnGlDhw1SMHXYYHjxegU03CFcyzQ7e6ivC1TUMRZYmDGaleJAson8ujTQTtzJhZfeAeShKWv6qVk9f1lrf3CZ0h0EUDzCluT5ipmLyxRY3Z6NNmP4NaxXi6S9/HDauoVasraOdtdVoMImM0ofIITjmFHhHMEx/k9TBQfRbiVqQeU5rG/c2c",
+      "ConnectionString": "",
       "ProviderName": "System.Data.SqlClient"
     }
   }
