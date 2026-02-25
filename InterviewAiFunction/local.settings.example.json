@@ -1,0 +1,21 @@
+{
+  "IsEncrypted": true,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
+    "jwt_audience": "api://[front-end-app-registration-client-id]",
+    "jwt_authority": "https://login.microsoftonline.com/[tenant-id]/v2.0",
+    "jwt_issuer": "https://sts.windows.net/[tenant-id]/",
+    "sqldb_connection": "Server=?; Authentication=?; Database=?",
+    "BASE_URL": "app-domain.com",
+    "MAIL_API_KEY": "key-xxx",
+    "MAIL_SERVICE": "mailgun|sendgrid|",
+    "MAIL_FROM": "From Email <postmaster@my-email-domain.com>"
+  },
+  "ConnectionStrings": {
+    "SQLConnectionString": {
+      "ConnectionString": "CfDJ8FQagsUh2NRHgilRs7d04O38M7/WZyeIOS9rQ/kzBb2/GhWwuVxg8weSyYM+Cq6kPkXJ6FIOOMiGKvwqjn7h6vwa6OPDLYXMTipLMJzVQyBg5s3XR+PQzN9YgDnGlDhw1SMHXYYHjxegU03CFcyzQ7e6ivC1TUMRZYmDGaleJAson8ujTQTtzJhZfeAeShKWv6qVk9f1lrf3CZ0h0EUDzCluT5ipmLyxRY3Z6NNmP4NaxXi6S9/HDauoVasraOdtdVoMImM0ofIITjmFHhHMEx/k9TBQfRbiVqQeU5rG/c2c",
+      "ProviderName": "System.Data.SqlClient"
+    }
+  }
+}
